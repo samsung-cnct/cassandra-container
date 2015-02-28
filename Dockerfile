@@ -46,11 +46,11 @@ RUN apt-get install -y datastax-agent
 # NOTE: iostat appears to be missing from ubuntu (used y datastax)...need the following package
 RUN apt-get install -y sysstat
 #
-# TODO: NEED TO SET THE UI SERVER IP FIRST!...but we don't know it????
+# TODO: NEED TO SET THE UI SERVER IP FIRST!...but we don't know it????  NOTE: Seems to work w/o this set
 #
 #RUN echo "stomp_interface: <reachable_opscenterd_ip>" | sudo tee -a /var/lib/datastax-agent/conf/address.yaml
 #
-# Also need (supposedly) sshd for this to work correctly
+# Also need (supposedly) sshd for this to work correctly... NOTE: used by remote agent install
 #
 # Configure SSH server
 #v1 RUN apt-get install -y openssh-server
@@ -67,7 +67,7 @@ RUN apt-get install -y sysstat
 #
 # Start the datastax-agent
 #RUN service datastax-agent start  
-# DO THIS IN THE SCRIPT INSTEAD
+# DO THIS IN THE SCRIPT INSTEAD...
 #-----------------------------------------------
 
 # Deploy startup script
