@@ -115,29 +115,11 @@ Every docker image is given an IP to communicate with.
 
 Use the above commands to get the IP of your docker images. Or manually look them up using `docker ps` and `docker inspect`.
 
-The Following IPs are open (default Cassandra ports):
+The Following Ports are open (default Cassandra ports):
 
     7199 7000 7001 9160 9042
 
-#### Standalone instance
+Datastax-agent ports:
 
-Every language and client has a different syntax, but simply:
+    61620 61621 50031 (22)
 
-````js
-    cassandra.connect("172.17.0.2")
-````
-
-Obviously modify to fit the method of connecting for your library.
-
-
-#### Cluster
-
-The IPs of the cluster are determined using [one-liners] and your application input channels.
-
-I provide a way to get the info, but how it gets into your application is up to you.
-
-The below IPs are examples to give a gist, but you must get your relevant IPs using the above commands.
-
-````js
-    cassandra.connect(["172.17.0.2", "172.17.0.3", "172.17.0.4"])
-````
