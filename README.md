@@ -1,18 +1,18 @@
-cassandra-docker
-================
+# cassandra-container
 
 Standlone/Clustered Datastax Community running on top of a Ubuntu-based Docker image with opscenter agent
 
+Verions for Docker and Kubernetes
+
 This was started from the docker-cassandra project and enhanced (substantially)
 
-Assumptions
-===========
+## Assumptions
 
 opscenter container must be run first and be named:
 
 	opscenter
 
-cassandra running containers may be named: 
+cassandra seed containers must be named one of the following: 
 
 	cass1
 	cass2
@@ -26,11 +26,21 @@ cassandra running containers may be named:
 	
 cassandra containers must be linked to the opscenter container. This is needed to set the STOMP IP in the datastax-agent for the opscenter.
 
-Note: any linked cass<x> containers are considered SEEDs.
+Note: any linked cassX containers are considered SEEDs.
 
-Command Line Instructions
-=========================
+## Container Architecture
+### Docker
+	
+	![image](DockArch.png)
+	
+### Kubernetes
+	![image](KubernetesArch.png)
+	
+## Build Instructions
+	TBD
 
+## Command Line Instructions
+### Docker
 Three node cluster with opscenter
 
 	docker run -d --name opscenter -p 8888:8888 <repo>/opsenter-mln:<version>
@@ -51,5 +61,25 @@ Browser URL (boot2docker)
 	Connet to existing cluster in web UI popup.  Supply the IP address.
 	
 	
+### Kubernetes
+Three node cluster with opscenter
+
+	TBD
+	kubectl create -f opscenter-pod.yaml
+	kubectl create -f cassandra-controller.yaml
+	kubectl create -f opscenter-service.yaml
+	kubectl create -f cassandra-service.yaml
+
+Debug help
+	
+	TBD
+	
+Browser URL (boot2docker)
+
+	http://<opscenter service ip>:8888
+	
+	cassandra seed container IP  (look for NetworkSettings.IPAddress)
+	Connet to existing cluster in web UI popup.  Supply the IP address.
+
 
 
