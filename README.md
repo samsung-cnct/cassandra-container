@@ -31,10 +31,10 @@ Note: any linked cassX containers are considered SEEDs.
 ## Container Architecture
 ### Docker
 	
-	![image](DockArch.png)
+	![Docker Architecture](./DockerArch.png?raw=true)
 	
 ### Kubernetes
-	![image](KubernetesArch.png)
+	![Kubernetes Architecture](./KubernetesArch.png?raw=true)
 	
 ## Build Instructions
 	TBD
