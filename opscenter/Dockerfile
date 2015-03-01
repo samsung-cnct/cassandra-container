@@ -30,8 +30,12 @@ RUN chmod 755 /usr/local/bin/ops-dock
 ADD shutdown.sh /usr/local/bin/ops-stop
 RUN chmod 755 /usr/local/bin/ops-stop
 
-EXPOSE 7199 7000 7001 9160 9042
-EXPOSE 61620 61621 50031
-#v1 EXPOSE 22 61620 61621 50031
+# opscenter ports
+EXPOSE 8888 50031 61620
+# agent ports...(just to be safe)
+#EXPOSE 7199 8012 61621 22 
+EXPOSE 7199 8012 61621 
+# cassandra ports...(just to be safe)
+EXPOSE 7000 7001 9160 9042
 USER root
 CMD ops-dock
