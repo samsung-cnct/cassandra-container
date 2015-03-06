@@ -1,0 +1,49 @@
+id: cassandra
+kind: ReplicationController
+apiVersion: v1beta1
+desiredState:
+  replicas: 1
+  replicaSelector:
+    name: cassandra
+  podTemplate:
+    desiredState:
+      manifest:
+        version: v1beta1
+        id: cassandra
+        containers:
+          - name: cassandra
+            image: mikeln/cassandra-kub-mln:v1
+#            #cpu: 1000
+            ports:
+              - name: cql
+                containerPort: 9042
+              - name: thrift
+                containerPort: 9160
+              - name: jmx
+                containerPort: 7199
+              - name: huh
+                containerPort: 7000
+              - name: huh-ssl
+                containerPort: 7001
+              - name: agent
+                containerPort: 61620
+              - name: agent-ssl
+                containerPort: 61621
+              - name: dse
+                containerPort: 50031
+            volumeMounts:
+              - name: data
+                mountPath: /cassandra_data
+#            #env:
+#            #  - key: MAX_HEAP_SIZE
+#            #    value: 512M
+#            #  - key: HEAP_NEWSIZE
+#            #    value: 100M
+#            #  - key: KUBERNETES_API_PROTOCOL
+#            #    value: http
+        volumes:
+          - name: data
+            source:
+              emptyDir: {}
+    labels:
+      name: cassandra

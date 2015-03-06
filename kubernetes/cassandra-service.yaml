@@ -1,0 +1,7 @@
+id: cassandra
+kind: Service
+apiVersion: v1beta1
+port: 9160
+containerPort: 9160
+selector:
+  name: cassandra

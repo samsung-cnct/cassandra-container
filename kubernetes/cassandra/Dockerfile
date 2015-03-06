@@ -69,6 +69,10 @@ RUN apt-get install -y sysstat
 #RUN service datastax-agent start  
 # DO THIS IN THE SCRIPT INSTEAD...
 #-----------------------------------------------
+#
+#ADD cassandra.yaml /etc/cassandra/cassandra.yaml
+ADD kubernetes-cassandra.jar /kubernetes-cassandra.jar
+RUN chmod 644 /kubernetes-cassandra.jar
 
 # Deploy startup script
 ADD init.sh /usr/local/bin/cass-dock
