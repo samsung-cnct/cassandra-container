@@ -1,5 +1,7 @@
 .git
 .gitmodules
 .gitignore
+init.sh.orig
 Dockerfile.*
+cassandra_kub_mln
 README.md
