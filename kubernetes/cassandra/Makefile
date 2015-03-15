@@ -14,7 +14,7 @@ build-all: build-app
 
 build-app: cassandra_kub_mln
 
-cassandra_kub_mln: Dockerfile.app init.sh
+cassandra_kub_mln: Dockerfile.kub init.sh
 	@echo "building app $(VERSION)"
 	#
 	# workaround until docker 1.5.0 -f
