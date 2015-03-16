@@ -8,7 +8,7 @@ desiredState:
     containers:
       - name: opscenter
         image: mikeln/opscenter-kub-mln:v1
-        cpu: 1000
+        cpu: 100
         ports:
           - name: cql
             containerPort: 9042
