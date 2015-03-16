@@ -5,7 +5,7 @@
 #
 # 3/12/2015 mln
 #
-VERSION = v3
+VERSION = v7
 REPO = mikeln
 
 all: build-all
@@ -14,7 +14,7 @@ build-all: build-app
 
 build-app: cassandra_kub_mln
 
-cassandra_kub_mln: Dockerfile.kub init.sh
+cassandra_kub_mln: Dockerfile.kub init.sh KubSeedProv-1.0-SNAPSHOT.jar
 	@echo "building app $(VERSION)"
 	#
 	# workaround until docker 1.5.0 -f

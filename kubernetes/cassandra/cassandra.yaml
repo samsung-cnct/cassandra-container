@@ -187,14 +187,14 @@ row_cache_save_period: 0
 #
 # Default value is empty to make it "auto" (min(2.5% of Heap (in MB), 50MB)). Set to 0 to disable counter cache.
 # NOTE: if you perform counter deletes and rely on low gcgs, you should disable the counter cache.
-counter_cache_size_in_mb:
+#counter_cache_size_in_mb:
 
 # Duration in seconds after which Cassandra should
 # save the counter cache (keys only). Caches are saved to saved_caches_directory as
 # specified in this configuration file.
 #
 # Default is 7200 or 2 hours.
-counter_cache_save_period: 7200
+#counter_cache_save_period: 7200
 
 # Number of keys from the counter cache to save
 # Disabled by default, meaning all keys are going to be saved
@@ -254,7 +254,8 @@ seed_provider:
     # Cassandra nodes use this list of hosts to find each other and learn
     # the topology of the ring.  You must change this if you are running
     # multiple nodes!
-    - class_name: io.k8s.cassandra.KubernetesSeedProvider 
+    #- class_name: io.k8s.cassandra.KubernetesSeedProvider 
+    - class_name: com.samsung.cassandra.KubernetesSeedProvider 
       parameters:
           # seeds is actually a comma-delimited list of addresses.
           # Ex: "<ip1>,<ip2>,<ip3>"
@@ -273,7 +274,7 @@ seed_provider:
 # your system; (8 * number_of_cores) is a good rule of thumb.
 concurrent_reads: 32
 concurrent_writes: 32
-concurrent_counter_writes: 32
+#concurrent_counter_writes: 32
 
 # Total memory to use for sstable-reading buffers.  Defaults to
 # the smaller of 1/4 of heap or 512MB.
@@ -300,7 +301,7 @@ concurrent_counter_writes: 32
 #   heap_buffers:    on heap nio buffers
 #   offheap_buffers: off heap (direct) nio buffers
 #   offheap_objects: native memory, eliminating nio buffer heap overhead
-memtable_allocation_type: heap_buffers
+#memtable_allocation_type: heap_buffers
 
 # Total space to use for commitlogs.  Since commitlog segments are
 # mmapped, and hence use up address space, the default size is 32
@@ -329,13 +330,13 @@ memtable_allocation_type: heap_buffers
 # shrink their index summaries in order to meet this limit.  However, this
 # is a best-effort process. In extreme conditions Cassandra may need to use
 # more than this amount of memory.
-index_summary_capacity_in_mb:
+#index_summary_capacity_in_mb:
 
 # How frequently index summaries should be resampled.  This is done
 # periodically to redistribute memory from the fixed-size pool to sstables
 # proportional their recent read rates.  Setting to -1 will disable this
 # process, leaving existing index summaries at their current sampling level.
-index_summary_resize_interval_in_minutes: 60
+#index_summary_resize_interval_in_minutes: 60
 
 # Whether to, when doing sequential writing, fsync() at intervals in
 # order to force the operating system to flush the dirty
@@ -546,7 +547,7 @@ compaction_throughput_mb_per_sec: 16
 # are completely written, and used in place of the prior sstables for
 # any range that has been written. This helps to smoothly transfer reads 
 # between the sstables, reducing page cache churn and keeping hot rows hot
-sstable_preemptive_open_interval_in_mb: 50
+#sstable_preemptive_open_interval_in_mb: 50
 
 # Throttles all outbound streaming file transfers on this node to the
 # given total throughput in Mbps. This is necessary because Cassandra does
@@ -568,7 +569,7 @@ range_request_timeout_in_ms: 10000
 # How long the coordinator should wait for writes to complete
 write_request_timeout_in_ms: 2000
 # How long the coordinator should wait for counter writes to complete
-counter_write_request_timeout_in_ms: 5000
+#counter_write_request_timeout_in_ms: 5000
 # How long a coordinator should continue to retry a CAS operation
 # that contends with other proposals for the same row
 cas_contention_timeout_in_ms: 1000

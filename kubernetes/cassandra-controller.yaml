@@ -2,7 +2,7 @@ id: cassandra
 kind: ReplicationController
 apiVersion: v1beta1
 desiredState:
-  replicas: 1
+  replicas: 2
   replicaSelector:
     name: cassandra
   podTemplate:
@@ -12,8 +12,8 @@ desiredState:
         id: cassandra
         containers:
           - name: cassandra
-            image: mikeln/cassandra-kub-mln:v1
-#            #cpu: 1000
+            image: mikeln/cassandra_kub_mln:v7
+            cpu: 100
             ports:
               - name: cql
                 containerPort: 9042

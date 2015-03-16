@@ -7,7 +7,7 @@ desiredState:
     id: cassandra
     containers:
       - name: cassandra
-        image: mikeln/cassandra-kub-mln:v1
+        image: mikeln/cassandra_kub_mln:v7 
         ports:
           - name: cql
             containerPort: 9042
@@ -39,6 +39,9 @@ desiredState:
       - name: data
         source:
           emptyDir: {}
+    restartPolicy:
+      never:
+        RestartPolicyNever:
 labels:
   name: cassandra
 

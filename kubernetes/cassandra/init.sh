@@ -20,11 +20,20 @@ DCONFIG=/var/lib/datastax-agent/conf
 if [ -n "$STOMP" ]; then
     echo "stomp_interface: $STOMP" | sudo tee -a $DCONFIG/address.yaml
 fi
+echo "local_interface: $IP" | sudo tee -a $DCONFIG/address.yaml
+echo "jmx_host: $IP" | sudo tee -a $DCONFIG/address.yaml
 
 #
 # for custom kubernetes seed 
 #
 export CLASSPATH=/kubernetes-cassandra.jar
+
+#
+# debug env for kub...in case of sudden death
+#
+env | sort
+#
+ls -l /
 
 echo "Starting Datastax Agent... stomp: $STOMP"
 sudo service datastax-agent start
@@ -33,3 +42,5 @@ sudo service datastax-agent start
 # NOTE: this will hang in the foreground (-f) so the container does not go away...
 echo Starting Cassandra...
 cassandra -f -p /var/run/cassandra.pid
+# just to lock up the container in case of a cassandra error
+tail -f /var/log/lastlog
