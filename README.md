@@ -65,7 +65,7 @@ Browser URL (boot2docker)
 ### Kubernetes
 Two/Three node cluster with opscenter
 
-See the directory [REAME](kubernetes/REAME.md)
+See the directory [REAME](/kubernetes/REAME.md)
 
 
 
