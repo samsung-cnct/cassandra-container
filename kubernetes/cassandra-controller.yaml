@@ -12,7 +12,7 @@ desiredState:
         id: cassandra
         containers:
           - name: cassandra
-            image: mikeln/cassandra_kub_mln:v7
+            image: mikeln/cassandra_kub_mln:v8
             cpu: 100
             ports:
               - name: cql

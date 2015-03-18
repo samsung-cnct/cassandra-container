@@ -22,6 +22,7 @@ if [ -n "$STOMP" ]; then
 fi
 echo "local_interface: $IP" | sudo tee -a $DCONFIG/address.yaml
 echo "jmx_host: $IP" | sudo tee -a $DCONFIG/address.yaml
+echo "hosts: [ $IP ]" | sudo tee -a $DCONFIG/address.yaml
 
 #
 # for custom kubernetes seed 

@@ -5,7 +5,7 @@
 #
 # 3/12/2015 mln
 #
-VERSION = v7
+VERSION = v8
 REPO = mikeln
 
 all: build-all

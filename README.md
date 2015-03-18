@@ -63,24 +63,10 @@ Browser URL (boot2docker)
 	
 	
 ### Kubernetes
-Three node cluster with opscenter
+Two/Three node cluster with opscenter
 
-	TBD
-	kubectl create -f opscenter-pod.yaml
-	kubectl create -f cassandra-controller.yaml
-	kubectl create -f opscenter-service.yaml
-	kubectl create -f cassandra-service.yaml
+See the directory [REAME](kubernetes/REAME.md)
 
-Debug help
-	
-	TBD
-	
-Browser URL (boot2docker)
-
-	http://<opscenter service ip>:8888
-	
-	cassandra seed container IP  (look for NetworkSettings.IPAddress)
-	Connet to existing cluster in web UI popup.  Supply the IP address.
 
 
 
