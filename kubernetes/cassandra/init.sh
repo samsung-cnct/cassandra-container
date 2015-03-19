@@ -5,6 +5,10 @@ CONFIG=/etc/cassandra/
 IP=${LISTEN_ADDRESS:-`hostname --ip-address`}
 #perl -pi -e "s/%%ip%%/$(hostname -I)/g" /etc/cassandra/cassandra.yaml
 perl -pi -e "s/%%ip%%/$IP/g" $CONFIG/cassandra.yaml
+#
+# seems to be root:root at this point..needs to be cassandra:cassandra
+#
+chown cassandra:cassandra $CONFIG/cassandra.yaml
 
 # Start Monitor Agent
 #
@@ -21,9 +25,18 @@ if [ -n "$STOMP" ]; then
     echo "stomp_interface: $STOMP" | sudo tee -a $DCONFIG/address.yaml
 fi
 echo "local_interface: $IP" | sudo tee -a $DCONFIG/address.yaml
+echo "agent_rpc_interface: $IP" | sudo tee -a $DCONFIG/address.yaml
 echo "jmx_host: $IP" | sudo tee -a $DCONFIG/address.yaml
 echo "hosts: [ $IP ]" | sudo tee -a $DCONFIG/address.yaml
-
+#
+# seems to be root:root at this point..needs to be cassandra:cassandra
+#
+chown cassandra:cassandra $DCONFIG/address.yaml
+#
+# HACK HACK for kubernetes volumes.  createa a root:root (and may be shared), so no way to chown it.
+# attempt this here, but not good in the long run
+#
+chown cassandra:cassandra /cassandra_data
 #
 # for custom kubernetes seed 
 #
