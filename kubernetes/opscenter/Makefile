@@ -1,5 +1,5 @@
 
-.PHONY: all clean-app
+.PHONY: all clean-app push
 #
 # This makefile assumes that docker is installed
 #
@@ -23,6 +23,9 @@ opscenter_kub_mln: Dockerfile.kub init.sh
 	docker build -t $(REPO)/opscenter_kub_mln:$(VERSION) --rm=true --force-rm=true .
 	@touch opscenter_kub_mln
 	@docker images $(REPO)/opscenter_kub_mln
+
+push:
+	docker push $(REPO)/opscenter_kub_mln:$(VERSION)
 
 clean: clean-app
 	-rm -f Dockerfile
