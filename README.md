@@ -6,28 +6,6 @@ Verions for Docker and Kubernetes
 
 This was started from the docker-cassandra project and enhanced (substantially)
 
-## Assumptions
-
-opscenter container must be run first and be named:
-
-	opscenter
-
-cassandra seed containers must be named one of the following: 
-
-	cass1
-	cass2
-	cass3
-	cass4
-	cass5
-	cass6
-	cass7
-	cass8
-	cass9
-	
-cassandra containers must be linked to the opscenter container. This is needed to set the STOMP IP in the datastax-agent for the opscenter.
-
-Note: any linked cassX containers are considered SEEDs.
-
 ## Container Architecture
 ### Docker
 	
@@ -38,36 +16,21 @@ Note: any linked cassX containers are considered SEEDs.
 ![Kubernetes Architecture](./KubernetesArch.png?raw=true)
 	
 ## Build Instructions
-	TBD
+There are currently separate builds for Docker alone images vs Images for Kubernetes. (this will change shortly).   You should only have to build images in specical cases.  Normally you should run using the images already in a (the) Docker Repository.
+
+However, if you must build, see the Makefile(s) in the lower level directories.
 
 ## Command Line Instructions
 ### Docker
 Three node cluster with opscenter
 
-	docker run -d --name opscenter -p 8888:8888 <repo>/opsenter-mln:<version>
-	docker run -d --name cass1 --link opscenter:opscenter <repo>/cassandra-mln:<version>
-	docker run -d --name cass2 --link opscenter:opscenter --link cass1:cass1 <repo>/cassandra-mln:<version>
-	docker run -d --name cass3 --link opscenter:opscenter --link cass1:cass1  <repo>/cassandra-mln:<version>
-
-Debug help
-	
-	docker exec -it <container name> bash
-	
-Browser URL (boot2docker)
-
-	boot2docker ip
-	http://<boot2docker ip>:8888
-	
-	docker inspect cass1  (look for NetworkSettings.IPAddress)
-	Connet to existing cluster in web UI popup.  Supply the IP address.
-	
+See the docker directory [README](/docker/README.md)	
 	
 ### Kubernetes
 Two/Three node cluster with opscenter
 
 See the kubernetes directory [README](/kubernetes/README.md)
 
-XXXX
 
 
 

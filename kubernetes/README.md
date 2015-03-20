@@ -64,3 +64,6 @@ This is the same setup but adapted for kubernetes
 		* sudo docker rmi -f <blah/conatiner:vX> (make sure any pods have been deleted first)
 		
 		
+## Build
+See [BUILD](./BUILD.md)
+

@@ -32,7 +32,7 @@ Note: any linked cassX containers are considered SEEDs.
 ### Docker
 	
 ## Build Instructions
-	TBD
+see [BUILD](./BUILD.md)
 
 ## Command Line Instructions
 ### Docker
