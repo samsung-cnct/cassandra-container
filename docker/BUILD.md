@@ -11,9 +11,6 @@ NOTE: These build instructions are for building from an OS-X machine.  They shou
 	* export the vars
 	* $(boot2docker shellinit)
 * GNU Make
-* If building the Java
-	* Java JDK
-	* Maven
 
 ## Build
 * set your Docker Image repository name.
