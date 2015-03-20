@@ -18,9 +18,16 @@ NOTE: These build instructions are for building from an OS-X machine.  They shou
 ## Build
 * set your Docker Image repository name.
 	* e.g. for dockerhub account myimage
-	''''export DOCKER_REPO=myimage
+	
+	````
+	export DOCKER_REPO=myimage
+	````
+	
 	this will create images such as:
-	myimage/cassandra_kub:v9''''
+	
+	````
+	myimage/cassandra_kub:v9
+	````
 
 ### cassandra
 * cd cassnadra
