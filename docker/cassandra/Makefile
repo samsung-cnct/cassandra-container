@@ -5,7 +5,7 @@
 #
 # 3/12/2015 mln
 #
-VERSION := v9
+VERSION := v4
 #
 # do some repo evals... want everyone to use their own, unless building for the team
 #
@@ -14,7 +14,7 @@ DOCKER_REPO ?= $(DEFAULT_REPO)
 REPO := $(DOCKER_REPO)
 #
 #
-DOCKER_IMAGE := cassandra_kub_mln
+DOCKER_IMAGE := cassandra_mln
 
 repo-warning:
 	@if  [ $(DOCKER_REPO) =  $(DEFAULT_REPO) ]; then \
@@ -38,12 +38,12 @@ build-all: build-app
 
 build-app: $(DOCKER_IMAGE)
 
-$(DOCKER_IMAGE): Dockerfile.kub init.sh KubSeedProv-1.0-SNAPSHOT.jar
+$(DOCKER_IMAGE): Dockerfile.app init.sh 
 	@echo "building app $(VERSION)"
 	#
 	# workaround until docker 1.5.0 -f
-	cp Dockerfile.kub Dockerfile
-	#docker build -f Dockerfile.inject -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) .
+	cp Dockerfile.app Dockerfile
+	#docker build -f Dockerfile.app -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) .
 	docker build -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) --rm=true --force-rm=true .
 	@touch $@
 	@docker images $(REPO)/$(DOCKER_IMAGE)
