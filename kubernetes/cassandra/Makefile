@@ -12,6 +12,9 @@ VERSION := v9
 DEFAULT_REPO := "samsungAG"
 DOCKER_REPO ?= $(DEFAULT_REPO)
 REPO := $(DOCKER_REPO)
+#
+#
+DOCKER_IMAGE := cassandra_kub_mln
 
 repo-warning:
 	@if  [ $(DOCKER_REPO) =  $(DEFAULT_REPO) ]; then \
@@ -33,17 +36,17 @@ all: build-all
 
 build-all: build-app
 
-build-app: cassandra_kub_mln
+build-app: $(DOCKER_IMAGE)
 
-cassandra_kub_mln: Dockerfile.kub init.sh KubSeedProv-1.0-SNAPSHOT.jar
+$(DOCKER_IMAGE): Dockerfile.kub init.sh KubSeedProv-1.0-SNAPSHOT.jar
 	@echo "building app $(VERSION)"
 	#
 	# workaround until docker 1.5.0 -f
 	cp Dockerfile.kub Dockerfile
-	#docker build -f Dockerfile.inject -t $(REPO)/twissandra_img:$(VERSION) .
-	docker build -t $(REPO)/cassandra_kub_mln:$(VERSION) --rm=true --force-rm=true .
+	#docker build -f Dockerfile.inject -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) .
+	docker build -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) --rm=true --force-rm=true .
 	@touch $@
-	@docker images $(REPO)/cassandra_kub_mln
+	@docker images $(REPO)/$(DOCKER_IMAGE)
 
 KubSeedProv-1.0-SNAPSHOT.jar:
 	@echo "=========================================================================="
@@ -52,12 +55,12 @@ KubSeedProv-1.0-SNAPSHOT.jar:
 	@echo "=========================================================================="
 
 push: 
-	docker push $(REPO)/cassandra_kub_mln:$(VERSION)
+	docker push $(REPO)/$(DOCKER_IMAGE):$(VERSION)
 
 clean: clean-app
 	-rm -f Dockerfile
 
 clean-app: 
-	-docker rmi $(REPO)/cassandra_kub_mln:$(VERSION)
-	-rm -f cassandra_kub_mln
+	-docker rmi $(REPO)/$(DOCKER_IMAGE):$(VERSION)
+	-rm -f $(DOCKER_IMAGE)
 

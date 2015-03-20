@@ -12,6 +12,9 @@ VERSION := v2
 DEFAULT_REPO := "samsungAG"
 DOCKER_REPO ?= $(DEFAULT_REPO)
 REPO := $(DOCKER_REPO)
+#
+#
+DOCKER_IMAGE := opscenter_kub_mln
 
 repo-warning:
 	@if  [ $(DOCKER_REPO) =  $(DEFAULT_REPO) ]; then \
@@ -33,25 +36,25 @@ all: build-all
 
 build-all: build-app
 
-build-app: opscenter_kub_mln
+build-app: $(DOCKER_IMAGE)
 
-opscenter_kub_mln: Dockerfile.kub init.sh 
+$(DOCKER_IMAGE): Dockerfile.kub init.sh 
 	@echo "building app $(VERSION)"
 	#
 	# workaround until docker 1.5.0 -f
 	cp Dockerfile.kub Dockerfile
-	#docker build -f Dockerfile.inject -t $(REPO)/opscenter_kub_mln:$(VERSION) .
-	docker build -t $(REPO)/opscenter_kub_mln:$(VERSION) --rm=true --force-rm=true .
+	#docker build -f Dockerfile.inject -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) .
+	docker build -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) --rm=true --force-rm=true .
 	@touch $@
-	@docker images $(REPO)/opscenter_kub_mln
+	@docker images $(REPO)/$(DOCKER_IMAGE)
 
 push:
-	docker push $(REPO)/opscenter_kub_mln:$(VERSION)
+	docker push $(REPO)/$(DOCKER_IMAGE):$(VERSION)
 
 clean: clean-app
 	-rm -f Dockerfile
 
 clean-app:
-	-docker rmi $(REPO)/opscenter_kub_mln:$(VERSION)
-	-rm -f opscenter_kub_mln
+	-docker rmi $(REPO)/$(DOCKER_IMAGE):$(VERSION)
+	-rm -f $(DOCKER_IMAGE)
 
