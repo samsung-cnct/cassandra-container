@@ -4,5 +4,6 @@
 init.sh.orig
 Dockerfile.*
 cassandra_kub_mln
+cassandra_kub
 README.md
 Makefile

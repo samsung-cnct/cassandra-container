@@ -7,7 +7,7 @@ desiredState:
     id: cassandra
     containers:
       - name: cassandra
-        image: mikeln/cassandra_kub_mln:v7 
+        image: mikeln/cassandra_kub_mln:v9 
         ports:
           - name: cql
             containerPort: 9042
@@ -33,8 +33,8 @@ desiredState:
 #            value: 512M
 #          - key: HEAP_NEWSIZE
 #            value: 100M
-          - key: KUBERNETES_API_PROTOCOL
-            value: http
+#          - key: KUBERNETES_API_PROTOCOL
+#            value: http
     volumes:
       - name: data
         source:
