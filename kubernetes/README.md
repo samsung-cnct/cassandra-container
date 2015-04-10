@@ -3,7 +3,7 @@
 This is the same setup but adapted for kubernetes
 
 ### Sequence
-* Start you kubernetes cluster [ `vagrant up` or `./cluster/kube-up.sh` ]
+* Start your kubernetes cluster [ `vagrant up` or `./cluster/kube-up.sh` ]
 * Note the Node (minion) IPs [ `kub get minions` ]
 ````
       l2067532491-mn:kubernetes mikel_nelson$ kub get minions
