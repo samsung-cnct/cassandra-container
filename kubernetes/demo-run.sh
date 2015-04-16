@@ -2,6 +2,9 @@
 #
 # Script to start all the pieces of the cassandra cluster demo with opscenter
 #
+#-------
+# some best practice stuff
+unset CDPATH
 #
 echo " "
 echo "=================================================="
@@ -13,6 +16,9 @@ echo "  This script uses our kraken project assumptions:"
 echo "     kubectl will be located at (for OS-X):"
 echo "       /opt/kubernetes/platforms/darwin/amd64/kubectl"
 echo "    .kubeconfig is from our kraken project"
+echo " "
+echo "  Also, your Kraken Kubernetes Cluster Must be"
+echo "  up and Running.  "
 echo "=================================================="
 #
 # setup trap for script signals
@@ -25,8 +31,10 @@ trap "echo ' ';echo ' ';echo 'SIGNAL CAUGHT, SCRIPT TERMINATING, cleaning up'; .
 # check to see if kubectl has been configured
 #
 echo " "
-echo "Locating kubectl and .kubeconfig..."
-DEVBASE=${PWD%/cassandra-container/kubernetes}
+echo "Locating Kraken Project kubectl and .kubeconfig..."
+SCRIPTPATH="$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )"
+cd ${SCRIPTPATH}
+DEVBASE=${SCRIPTPATH%/cassandra-container/kubernetes}
 echo "DEVBASE ${DEVBASE}"
 #
 # locate projects...
@@ -58,7 +66,7 @@ kubectl_local="${KUBECTL} --kubeconfig=${KUBECONFIG}"
 
 CMDTEST=`$kubectl_local version`   
 if [ $? -ne 0 ]; then
-    echo "kubectl is not responding. Please make sure it is in your path or you have created an alias"
+    echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running? (Hint: vagrant status, vagrant up)"
     exit 1;
 else
     echo "kubectl present: $kubectl_local"
@@ -162,28 +170,45 @@ $kubectl_local get pods
 #
 # wait for pods start
 #
-NUMTRIES=96
+# allow 10 minutes for these to come up (120*5=600 sec)
+NUMTRIES=120
 LASTRET=1
 LASTSTATUS="unknown"
+CR=$'\r'
 while [ $NUMTRIES -ne 0 ] && [ "$LASTSTATUS" != "Running" ]; do
+    let REMTIME=NUMTRIES*5
     LASTSTATUS=`$kubectl_local get pods opscenter --output=template --template={{.currentState.status}} 2>/dev/null`
     LASTRET=$?
     if [ $? -ne 0 ]; then
-        echo "Opscenter pod not found $NUMTRIES"
+        echo -n "Opscenter pod not found $REMTIME"
+        D=$NUMTRIES
+        while [ $D -ne 0 ]; do
+            echo -n "."
+            let D=D-1
+        done
+        echo -n "  $CR"
         LASTSTATUS="unknown"
         let NUMTRIES=NUMTRIES-1
         sleep 5
     else
-        echo "Opscenter pod found $LASTSTATUS"
+        #echo "Opscenter pod found $LASTSTATUS"
         if [ "$LASTSTATUS" != "Running" ]; then
-            echo "Opscenter pod NOT running $NUMTRIES"
+            echo -n "Opscenter pod: $LASTSTATUS - NOT running $REMTIME secs remaining"
+            let D=NUMTRIES/2
+            while [ $D -ne 0 ]; do
+                echo -n "."
+                let D=D-1
+            done
+            echo -n "  $CR"
             let NUMTRIES=NUMTRIES-1
             sleep 5
         else
+            echo ""
             echo "Opscenter pod running!"
         fi
     fi
 done
+echo ""
 if [ $NUMTRIES -le 0 ]; then
     echo "Opscenter pod did not start in alotted time...exiting"
     # clean up the potential mess
@@ -194,40 +219,49 @@ echo " "
 #
 # loop over all cassandra instances until running!
 #
-NUMTRIES=192
+#
+# allow 15 minutes for these to come up (180*5=900 sec)
+NUMTRIES=180
 LASTRET=1
 LASTSTATUS="unknown"
 COMBSTAT=99
+RUNSTAT=0
 CRLF=$'\n'
 while [ $NUMTRIES -ne 0 ] && [ $COMBSTAT -ne 0 ]; do
+    let REMTIME=NUMTRIES*5
     LASTSTATUS=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.currentState.status}}${CRLF}{{end}}" 2>/dev/null`
     LASTRET=$?
     if [ $? -ne 0 ]; then
-        echo "Cassandra get pods not problem $NUMTRIES"
+        echo -n "Cassandra get pods not problem $REMTIME                                         $CR"
         COMBSTAT=99
         let NUMTRIES=NUMTRIES-1
         sleep 5
     else
-        echo "Cassandra get pods found - evaluate statuses -----"
+        #echo "Cassandra get pods found - evaluate statuses -----"
         #
         # pre set the default
         COMBSTAT=0
+        RUNSTAT=0
         for STATE in $LASTSTATUS; do
-            echo $STATE
+            #echo $STATE
             # only takes one not running
             if [ "$STATE" != "Running" ]; then
                 let COMBSTAT=COMBSTAT+1
+            else
+                let RUNSTAT=RUNSTAT+1
             fi
         done
         if [ $COMBSTAT -ne 0 ]; then
-            echo "$COMBSTAT Cassandra pods are NOT running $NUMTRIES"
+            echo -n "$COMBSTAT Cassandra pods NOT running, $RUNSTAT running. $REMTIME secs remaining  $CR"
             let NUMTRIES=NUMTRIES-1
             sleep 5
         else
-            echo "Cassandra pods are running!"
+            echo ""
+            echo "$RUNSTAT Cassandra pods are running!"
         fi
     fi
 done
+echo ""
 if [ $NUMTRIES -le 0 ]; then
     echo "Cassandra pods did not start in alotted time...exiting"
     # clean up the potential mess
@@ -241,7 +275,7 @@ echo " "
 #
 # git the user the correct URLs for opscenter and connecting that to the cluster
 #
-# NOTE: get services with the template appears to send out on stderr instead of stdout....ugg
+# NO ERROR CHECKING HERE...this is ALL just Informational for the user
 #
 SERVICEIP=`$kubectl_local get services cassandra-opscenter --output=template --template="{{.portalIP}}:{{.port}}" 2>/dev/null`
 PUBLICIP=`$kubectl_local get services cassandra-opscenter --output=template --template="{{.publicIPs}}:{{.port}}" 2>/dev/null`
