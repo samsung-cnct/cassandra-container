@@ -2,6 +2,9 @@
 #
 # Script to stop all the pieces of the cassandra cluster demo with opscenter
 #
+#-------
+# some best practice stuff
+unset CDPATH
 #
 echo " "
 echo "=================================================="
@@ -16,7 +19,9 @@ echo "=================================================="
 #
 echo " "
 echo "Locating kubectl and .kubeconfig..."
-DEVBASE=${PWD%/cassandra-container/kubernetes}
+SCRIPTPATH="$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )"
+cd ${SCRIPTPATH}
+DEVBASE=${SCRIPTPATH%/cassandra-container/kubernetes}
 echo "DEVBASE ${DEVBASE}"
 #
 # locate projects...
@@ -48,7 +53,7 @@ kubectl_local="${KUBECTL} --kubeconfig=${KUBECONFIG}"
 
 CMDTEST=`$kubectl_local version`   
 if [ $? -ne 0 ]; then
-    echo "kubectl is not responding. Please make sure it is in your path or you have created an alias"
+    echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running? (Hint: vagrant status, vagrant up)"
     exit 1;
 else
     echo "kubectl present: $kubectl_local"
