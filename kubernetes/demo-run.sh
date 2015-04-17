@@ -331,19 +331,51 @@ SERVICEIP=`$kubectl_local get services cassandra-opscenter --output=template --t
 PUBLICPORT=`$kubectl_local get services cassandra-opscenter --output=template --template="{{.port}}" 2>/dev/null`
 PUBLICIP=`$kubectl_local get services cassandra-opscenter --output=template --template="{{.publicIPs}}" 2>/dev/null`
 # remove [] if present
-PUBLICIPS=`echo $PUBLICIP | tr -d '[]' | tr , '$CRLF'`
+PUBLICIPS=`echo $PUBLICIP | tr -d '[]' | tr , '\n'`
+#
+# NEED TO VALIDATE the PUBLICIPS against the NODEIPS
+#
+VALIDIPS=""
+for ip0 in ${PUBLICIPS};do
+    for ip1 in ${NODEIPS};do
+        if [ "$ip0" == "$ip1" ];then
+            VALIDIPS=${VALIDIPS}${CRLF}$ip0
+            break
+        fi
+    done
+done
+#
+# check to see that we acutally HAVE a publicly accessible IP
+#
+if [ -z "$VALIDIPS" ];then
+    echo "======!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!=================="
+    echo ""
+    echo "No valid publicIPs have been defined that match a node IP.  The web UI will not be accessible."
+    echo "Opscenter publicIPs:"
+    echo "${PUBLICIPS}"
+    echo "Node IPs:"
+    echo "${NODEIPS}"
+    echo ""
+    echo "Please correct your cassandra-opscenter-service.yaml file publicIPs: entry to include"
+    echo "at least one of the Node IPs lists above"
+    echo ""
+    echo "Leaving demo up.  You may tear id down via ./demo-down.sh"
+    echo "======!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!=================="
+    exit 99
+fi
+
 # remove trailing comma
 PODIP=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.currentState.podIP}}, {{end}}" 2>/dev/null`
-PODIPS=`echo $PODIP | sed 's/,$//' | tr , '$CRLF'`
+PODIPS=`echo $PODIP | sed 's/,$//' | tr , '\n'`
 
 echo "===================================================================="
 echo " "
 echo "  Cassandra Demo Cluster with Opscenter is Up!"
 echo " "
-echo "  Opscenter should be accessible via a web browser at these IP:Port."
-echo "  You should use the first one on the list."
+echo "  Opscenter should be accessible via a web browser at one of "
+echo "  these IP:Port(s):"
 echo " "
-for ip in ${PUBLICIPS};do
+for ip in ${VALIDIPS};do
 echo "      $ip:${PUBLICPORT}"
 done
 echo " "
