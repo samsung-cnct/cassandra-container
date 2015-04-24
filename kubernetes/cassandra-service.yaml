@@ -1,7 +1,15 @@
-id: cassandra
+apiVersion: v1beta3
 kind: Service
-apiVersion: v1beta1
-port: 9042
-containerPort: 9042
-selector:
-  name: cassandra
+metadata:
+    labels:
+        name: cassandra
+    name: cassandra
+spec:
+    ports:
+        - name: native
+          port: 9042
+        - name: thrift
+          port: 9160
+    publicIPs: [ 172.16.1.103 ]
+    selector:
+        name: cassandra
