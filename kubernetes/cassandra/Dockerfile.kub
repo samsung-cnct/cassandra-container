@@ -41,7 +41,7 @@ RUN apt-get install -y dsc20=2.0.11-1 cassandra=2.0.11
 #--------------------------------------------
 # Cassandra visualizer/control tool
 #
-RUN apt-get install -y datastax-agent
+RUN apt-get install -y datastax-agent=5.1.1
 #
 # NOTE: iostat appears to be missing from ubuntu (used y datastax)...need the following package
 RUN apt-get install -y sysstat

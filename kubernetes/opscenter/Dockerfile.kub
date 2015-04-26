@@ -19,8 +19,8 @@ RUN apt-get install -y curl
 RUN echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/datastax.sources.list
 RUN curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
 RUN apt-get update
-
-RUN apt-get -y install opscenter
+# pin the opscenter version...datastax-agent has to be the same
+RUN apt-get -y install opscenter=5.1.1
 
 # Deploy startup script
 ADD init.sh /usr/local/bin/ops-dock
