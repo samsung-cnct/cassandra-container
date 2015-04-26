@@ -1,9 +1,0 @@
-id: cassandra-opscenter
-kind: Service
-apiVersion: v1beta1
-port: 8888
-containerPort: 8888
-publicIPs: [ 172.16.1.103, 172.16.1.104 ]
-selector:
-  name: opscenter
-

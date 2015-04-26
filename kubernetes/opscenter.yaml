@@ -1,15 +1,18 @@
-id: opscenter
+apiVersion: v1beta3
 kind: Pod
-apiVersion: v1beta1
-desiredState:
-  manifest:
-    version: v1beta1
-    id: opscenter
+metadata:
+    labels:
+        name: opscenter
+    name: opscenter
+spec:
     containers:
       - name: opscenter
         image: mikeln/opscenter-kub-mln:v1
-        cpu: 100
+        limits:
+            cpu: 100
         ports:
+          - name: web 
+            containerPort: 8888
           - name: cql
             containerPort: 9042
           - name: thrift
@@ -27,13 +30,9 @@ desiredState:
           - name: dse
             containerPort: 50031
         env:
-          - key: MAX_HEAP_SIZE
+          - name: MAX_HEAP_SIZE
             value: 512M
-          - key: HEAP_NEWSIZE
+          - name: HEAP_NEWSIZE
             value: 100M
-          - key: KUBERNETES_API_PROTOCOL
+          - name: KUBERNETES_API_PROTOCOL
             value: http
-labels:
-  name: opscenter
-
-    
