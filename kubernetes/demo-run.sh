@@ -77,7 +77,10 @@ fi
 echo " "
 # get minion IPs for later...also checks if cluster is up
 echo "+++++ finding Kubernetes Nodes services ++++++++++++++++++++++++++++"
-NODEIPS=`$kubectl_local get minions --output=template --template="{{range $.items}}{{.hostIP}}${CRLF}{{end}}" 2>/dev/null`
+# v1beta3
+NODEIPS=`$kubectl_local get minions --output=template --template="{{range $.items}}{{.metadata.name}}${CRLF}{{end}}" 2>/dev/null`
+#NODEIPS=`$kubectl_local get minions --output=template --template="{{range $.items}}{{.spec.externalID}}${CRLF}{{end}}" 2>/dev/null`
+#NODEIPS=`$kubectl_local get minions --output=template --template="{{range $.items}}{{.hostIP}}${CRLF}{{end}}" 2>/dev/null`
 if [ $? -ne 0 ]; then
     echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running? (Hint: vagrant status, vagrant up)"
     exit 1;
@@ -95,9 +98,9 @@ echo "+++++ starting cassandra services ++++++++++++++++++++++++++++"
 #
 # check to see if the services are already running...don't start if so
 #
-$kubectl_local get services cassandra-opscenter 2>/dev/null
+$kubectl_local get services opscenter 2>/dev/null
 if [ $? -ne 0 ]; then
-    $kubectl_local create -f  cassandra-opscenter-service.yaml
+    $kubectl_local create -f  opscenter-service.yaml
     if [ $? -ne 0 ]; then
         echo "Opscenter service start error"
         # clean up the potential mess
@@ -111,7 +114,7 @@ if [ $? -ne 0 ]; then
         NUMTRIES=4
         LASTRET=1
         while [ $LASTRET -ne 0 ] && [ $NUMTRIES -ne 0 ]; do
-            $kubectl_local get services cassandra-opscenter 2>/dev/null
+            $kubectl_local get services opscenter 2>/dev/null
             LASTRET=$?
             if [ $? -ne 0 ]; then
                 echo "Opscenter service not found $NUMTRIES"
@@ -228,7 +231,9 @@ LASTRET=1
 LASTSTATUS="unknown"
 while [ $NUMTRIES -ne 0 ] && [ "$LASTSTATUS" != "Running" ]; do
     let REMTIME=NUMTRIES*5
-    LASTSTATUS=`$kubectl_local get pods opscenter --output=template --template={{.currentState.status}} 2>/dev/null`
+    #v1beta3
+    LASTSTATUS=`$kubectl_local get pods opscenter --output=template --template={{.status.phase}} 2>/dev/null`
+    #LASTSTATUS=`$kubectl_local get pods opscenter --output=template --template={{.currentState.status}} 2>/dev/null`
     LASTRET=$?
     if [ $? -ne 0 ]; then
         echo -n "Opscenter pod not found $REMTIME"
@@ -279,7 +284,9 @@ COMBSTAT=99
 RUNSTAT=0
 while [ $NUMTRIES -ne 0 ] && [ $COMBSTAT -ne 0 ]; do
     let REMTIME=NUMTRIES*5
-    LASTSTATUS=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.currentState.status}}${CRLF}{{end}}" 2>/dev/null`
+    #v1beta3
+    LASTSTATUS=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.phase}}${CRLF}{{end}}" 2>/dev/null`
+    #LASTSTATUS=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.currentState.status}}${CRLF}{{end}}" 2>/dev/null`
     LASTRET=$?
     if [ $? -ne 0 ]; then
         echo -n "Cassandra get pods not problem $REMTIME                                         $CR"
@@ -327,9 +334,15 @@ echo " "
 #
 # NO ERROR CHECKING HERE...this is ALL just Informational for the user
 #
-SERVICEIP=`$kubectl_local get services cassandra-opscenter --output=template --template="{{.portalIP}}:{{.port}}" 2>/dev/null`
-PUBLICPORT=`$kubectl_local get services cassandra-opscenter --output=template --template="{{.port}}" 2>/dev/null`
-PUBLICIP=`$kubectl_local get services cassandra-opscenter --output=template --template="{{.publicIPs}}" 2>/dev/null`
+#v1beta3
+SERVICEIP=`$kubectl_local get services opscenter --output=template --template="{{.spec.portalIP}}" 2>/dev/null`
+#SERVICEIP=`$kubectl_local get services opscenter --output=template --template="{{.portalIP}}:{{.port}}" 2>/dev/null`
+#v1beta3
+PUBLICPORT=`$kubectl_local get services opscenter --output=template --template="{{range $.spec.ports}}{{.port}}${CRLF}{{end}}" 2>/dev/null`
+#PUBLICPORT=`$kubectl_local get services opscenter --output=template --template="{{.port}}" 2>/dev/null`
+#v1beta3
+PUBLICIP=`$kubectl_local get services opscenter --output=template --template="{{.spec.publicIPs}}" 2>/dev/null`
+#PUBLICIP=`$kubectl_local get services opscenter --output=template --template="{{.publicIPs}}" 2>/dev/null`
 # remove [] if present
 PUBLICIPS=`echo $PUBLICIP | tr -d '[]' | tr , '\n'`
 #
@@ -356,16 +369,18 @@ if [ -z "$VALIDIPS" ];then
     echo "Node IPs:"
     echo "${NODEIPS}"
     echo ""
-    echo "Please correct your cassandra-opscenter-service.yaml file publicIPs: entry to include"
+    echo "Please correct your opscenter-service.yaml file publicIPs: entry to include"
     echo "at least one of the Node IPs lists above"
     echo ""
     echo "Leaving demo up.  You may tear id down via ./demo-down.sh"
     echo "======!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!=================="
-    exit 99
+#    exit 99
 fi
 
 # remove trailing comma
-PODIP=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.currentState.podIP}}, {{end}}" 2>/dev/null`
+# v1beta3
+PODIP=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.podIP}}, {{end}}" 2>/dev/null`
+#PODIP=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.currentState.podIP}}, {{end}}" 2>/dev/null`
 PODIPS=`echo $PODIP | sed 's/,$//' | tr , '\n'`
 
 echo "===================================================================="
