@@ -98,6 +98,43 @@ echo "+++++ starting cassandra services ++++++++++++++++++++++++++++"
 #
 # check to see if the services are already running...don't start if so
 #
+$kubectl_local get services cassandra 2>/dev/null
+if [ $? -ne 0 ]; then
+    $kubectl_local create -f cassandra-service.yaml
+    if [ $? -ne 0 ]; then
+        echo "Cassandra service start error"
+        . ./demo-down.sh
+        # clean up the potential mess
+        exit 2
+    else
+        echo "Cassandra service started"
+        #
+        # wait until services are ready
+        #
+        NUMTRIES=4
+        LASTRET=1
+        while [ $LASTRET -ne 0 ] && [ $NUMTRIES -ne 0 ]; do
+            $kubectl_local get services cassandra 2>/dev/null
+            LASTRET=$?
+            if [ $LASTRET -ne 0 ]; then
+                echo "Cassandra service not found $NUMTRIES"
+                let NUMTRIES=NUMTRIES-1
+                sleep 1
+            else
+                echo "Cassandra service found"
+            fi
+        done
+        if [ $NUMTRIES -le 0 ]; then
+            echo "Cassandra Service did not start in alotted time...exiting"
+            # clean up the potential mess
+            . ./demo-down.sh
+            exit 2
+        fi
+    fi
+else
+    echo "Cassandra service already running...skipping"
+fi
+
 $kubectl_local get services opscenter 2>/dev/null
 if [ $? -ne 0 ]; then
     $kubectl_local create -f  opscenter-service.yaml
@@ -135,43 +172,6 @@ else
     echo "Opscenter service already running...skipping"
 fi
 echo ""
-
-$kubectl_local get services cassandra 2>/dev/null
-if [ $? -ne 0 ]; then
-    $kubectl_local create -f cassandra-service.yaml
-    if [ $? -ne 0 ]; then
-        echo "Cassandra service start error"
-        . ./demo-down.sh
-        # clean up the potential mess
-        exit 2
-    else
-        echo "Cassandra service started"
-        #
-        # wait until services are ready
-        #
-        NUMTRIES=4
-        LASTRET=1
-        while [ $LASTRET -ne 0 ] && [ $NUMTRIES -ne 0 ]; do
-            $kubectl_local get services cassandra 2>/dev/null
-            LASTRET=$?
-            if [ $LASTRET -ne 0 ]; then
-                echo "Cassandra service not found $NUMTRIES"
-                let NUMTRIES=NUMTRIES-1
-                sleep 1
-            else
-                echo "Cassandra service found"
-            fi
-        done
-        if [ $NUMTRIES -le 0 ]; then
-            echo "Cassandra Service did not start in alotted time...exiting"
-            # clean up the potential mess
-            . ./demo-down.sh
-            exit 2
-        fi
-    fi
-else
-    echo "Cassandra service already running...skipping"
-fi
 
 echo " "
 echo "Services List:"
