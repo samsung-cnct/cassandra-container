@@ -78,7 +78,7 @@ echo " "
 # get minion IPs for later...also checks if cluster is up
 echo "+++++ finding Kubernetes Nodes services ++++++++++++++++++++++++++++"
 # v1beta3
-NODEIPS=`$kubectl_local get minions --output=template --template="{{range $.items}}{{.metadata.name}}${CRLF}{{end}}" 2>/dev/null`
+NODEIPS=`$kubectl_local get nodes --output=template --template="{{range $.items}}{{.metadata.name}}${CRLF}{{end}}" 2>/dev/null`
 #NODEIPS=`$kubectl_local get minions --output=template --template="{{range $.items}}{{.spec.externalID}}${CRLF}{{end}}" 2>/dev/null`
 #NODEIPS=`$kubectl_local get minions --output=template --template="{{range $.items}}{{.hostIP}}${CRLF}{{end}}" 2>/dev/null`
 if [ $? -ne 0 ]; then

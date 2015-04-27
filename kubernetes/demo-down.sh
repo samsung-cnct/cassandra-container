@@ -60,7 +60,7 @@ else
 fi
 echo " "
 echo "+++++ stopping cassandra services ++++++++++++++++++++++++++++"
-$kubectl_local delete services cassandra-opscenter 2>/dev/null
+$kubectl_local delete services opscenter 2>/dev/null
 if [ $? -ne 0 ]; then
     echo "Opscenter service already down"
 else
