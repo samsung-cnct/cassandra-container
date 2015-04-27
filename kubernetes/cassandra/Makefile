@@ -5,7 +5,7 @@
 #
 # 3/12/2015 mln
 #
-VERSION := v12
+VERSION := v13
 #
 # do some repo evals... want everyone to use their own, unless building for the team
 #
@@ -38,7 +38,7 @@ build-all: build-app
 
 build-app: $(DOCKER_IMAGE)
 
-$(DOCKER_IMAGE): Dockerfile.kub init.sh KubSeedProv-1.1-SNAPSHOT.jar cassandra.yaml
+$(DOCKER_IMAGE): Dockerfile.kub init.sh KubSeedProv-2.0-SNAPSHOT.jar cassandra.yaml
 	@echo "building app $(VERSION)"
 	#
 	# workaround until docker 1.5.0 -f

@@ -21,9 +21,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class KubernetesSeedProvider implements SeedProvider {
+    //
+    // v1beta3 JSON Parsing Class.
+    // Only parse the values we want.
+    //
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Address {
+        public String IP;
+    }
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Subset {
+        public Address[] addresses;
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     static class Endpoints {
-        public String[] endpoints;
+        public Subset[] subsets;
     }
     
     private static String getEnvOrDefault(String var, String def) {
@@ -64,17 +77,18 @@ public class KubernetesSeedProvider implements SeedProvider {
         
         String host = protocol + "://" + hostName + ":" + hostPort;
         String serviceName = getEnvOrDefault("CASSANDRA_SERVICE", "cassandra");
-        String path = "/api/v1beta3/endpoints/";
+        String path = "/api/v1beta3/namespaces/default/endpoints/";
         try {
             URL url = new URL(host + path + serviceName);
             ObjectMapper mapper = new ObjectMapper();
             Endpoints endpoints = mapper.readValue(url, Endpoints.class);
             if (endpoints != null) {
-                // here is a problem point. endpoint.endpoints can be null in first node cases
-                if (endpoints.endpoints != null){
-                    for (String endpoint : endpoints.endpoints) {
-                        String[] parts = endpoint.split(":");
-                        list.add(InetAddress.getByName(parts[0]));
+                if (endpoints.subsets != null && endpoints.subsets.length > 0){
+                    if (endpoints.subsets[0].addresses != null){
+                        for (Address endpoint : endpoints.subsets[0].addresses){
+                            String ip = endpoint.IP;
+                            list.add(InetAddress.getByName(ip));
+                        }
                     }
                 }
             }
