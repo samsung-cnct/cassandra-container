@@ -15,7 +15,7 @@ spec:
     spec:
         containers:
           - name: cassandra
-            image: mikeln/cassandra_kub_mln:v11
+            image: mikeln/cassandra_kub_mln:v12
             resources:
                 limits:
                     cpu: 1
