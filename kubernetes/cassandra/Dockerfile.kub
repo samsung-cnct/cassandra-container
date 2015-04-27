@@ -73,7 +73,7 @@ RUN apt-get install -y sysstat
 # USE OUR VERSION OF cassandra.yaml... it has the correct java seed impl and the needed perl markers for IP substitution
 ADD cassandra.yaml /etc/cassandra/cassandra.yaml
 #ADD kubernetes-cassandra.jar /kubernetes-cassandra.jar
-ADD KubSeedProv-1.0-SNAPSHOT.jar /kubernetes-cassandra.jar
+ADD KubSeedProv-2.0-SNAPSHOT.jar /kubernetes-cassandra.jar
 RUN chmod 644 /kubernetes-cassandra.jar
 
 # Deploy startup script
