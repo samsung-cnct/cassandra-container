@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 #
 # Script to start all the pieces of the cassandra cluster demo with opscenter
 #
@@ -77,10 +77,7 @@ fi
 echo " "
 # get minion IPs for later...also checks if cluster is up
 echo "+++++ finding Kubernetes Nodes services ++++++++++++++++++++++++++++"
-# v1beta3
 NODEIPS=`$kubectl_local get nodes --output=template --template="{{range $.items}}{{.metadata.name}}${CRLF}{{end}}" 2>/dev/null`
-#NODEIPS=`$kubectl_local get minions --output=template --template="{{range $.items}}{{.spec.externalID}}${CRLF}{{end}}" 2>/dev/null`
-#NODEIPS=`$kubectl_local get minions --output=template --template="{{range $.items}}{{.hostIP}}${CRLF}{{end}}" 2>/dev/null`
 if [ $? -ne 0 ]; then
     echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running? (Hint: vagrant status, vagrant up)"
     exit 1;
@@ -181,9 +178,24 @@ echo "+++++ starting cassandra pods ++++++++++++++++++++++++++++"
 #
 # check if things are already running..and skip
 #
+# get the final number of replicas for later
+#
+FINAL_SIZE=`grep "replicas:" cassandra-controller.yaml | cut -d ':' -f2 | tr -d '[[:space:]]'`
+#
 $kubectl_local get rc cassandra 2>/dev/null
 if [ $? -ne 0 ]; then
+    #
     # start a new one
+    #
+    # NOTE: timing issue... need to "ramp up" size:
+    #       let 1 start, then resize to desired
+    #       specification.
+    #
+    # First pull the desired size out of the yaml
+    # Then change that to 1.
+    # Wait for pod startup.
+    # Then resize to pulled value
+    #
     $kubectl_local create -f cassandra-controller.yaml
     if [ $? -ne 0 ]; then
         echo "Cassandra replication controller error"
@@ -192,6 +204,17 @@ if [ $? -ne 0 ]; then
         exit 3
     else
         echo "Cassandra replication controller and pod started"
+        #
+        # resize down to 1... TODO: may be ineffecient..vs just starting 1 initially
+        $kubectl_local resize --replicas=1 rc cassandra 2>/dev/null
+        if [ $? -ne 0 ]; then
+            echo "Cassandra pods resize error"
+            . ./demo-down.sh
+            # clean up the potential mess
+            exit 3
+        else
+            echo "Cassandra pods resized to 1 until start"
+        fi
     fi
 else
     echo "Cassandra replication controller already running...skipping"
@@ -200,7 +223,146 @@ echo " "
 echo "Replication Controllers:"
 $kubectl_local get rc
 echo " "
+#
+# see how many are running...if less than desired start the otheres
+CUR_SIZE=`$kubectl_local get rc  cassandra --output=template --template="{{$.status.replicas}}" 2>/dev/null`
+if [ $? -ne 0 ]; then
+    echo "Error getting number of Cassandra Pods Replicated"
+    . ./demo-down.sh
+    exit 3
+else
+    if [ $CUR_SIZE -lt $FINAL_SIZE ]; then
+        # start the others
+        #
+        # Need to wait for the first one to start running before we ramp up all instancdes
+        #
+        # allow 15 minutes for these to come up (180*5=900 sec)
+        NUMTRIES=180
+        LASTRET=1
+        LASTSTATUS="unknown"
+        COMBSTAT=99
+        RUNSTAT=0
+        while [ $NUMTRIES -ne 0 ] && [ $COMBSTAT -ne 0 ]; do
+            let REMTIME=NUMTRIES*5
+            LASTSTATUS=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.phase}}${CRLF}{{end}}" 2>/dev/null`
+            LASTRET=$?
+            if [ $? -ne 0 ]; then
+                echo -n "Cassandra get seed pods not problem $REMTIME                                         $CR"
+                COMBSTAT=99
+                let NUMTRIES=NUMTRIES-1
+                sleep 5
+            else
+                #echo "Cassandra get pods found - evaluate statuses -----"
+                #
+                # pre set the default
+                COMBSTAT=0
+                RUNSTAT=0
+                for STATE in $LASTSTATUS; do
+                    #echo $STATE
+                    # only takes one not running
+                    if [ "$STATE" != "Running" ]; then
+                        let COMBSTAT=COMBSTAT+1
+                    else
+                        let RUNSTAT=RUNSTAT+1
+                    fi
+                done
+                if [ $COMBSTAT -ne 0 ]; then
+                    echo -n "$COMBSTAT Cassandra seed pods NOT running, $RUNSTAT running. $REMTIME secs remaining  $CR"
+                    let NUMTRIES=NUMTRIES-1
+                    sleep 5
+                else
+                    echo ""
+                    echo "$RUNSTAT Cassandra seed pods are running!"
+                fi
+            fi
+        done
+        echo ""
+        if [ $NUMTRIES -le 0 ]; then
+            echo "Cassandra seed pods did not start in alotted time...exiting"
+            # clean up the potential mess
+            . ./demo-down.sh
+            exit 4
+        fi
+        echo "Pods:"
+        $kubectl_local get pods
+        echo ""
+        #
+        # add a slight delay...let seed pod settle
+        #
+        echo "Waiting 10 seconds to let the seed node settle"
+        sleep 10
+        #
+        # now ramp up all the instances + opscenter
+        #
+        #
+        # resize up to desired original size
+        $kubectl_local resize --replicas=$FINAL_SIZE rc cassandra 2>/dev/null
+        if [ $? -ne 0 ]; then
+            echo "Cassandra pods resize up error"
+            . ./demo-down.sh
+            # clean up the potential mess
+            exit 3
+        else
+            echo "Cassandra pods resized to $FINAL_SIZE"
+        fi
+        #
+        # loop over all cassandra instances until running!
+        #
+        #
+        # allow 15 minutes for these to come up (180*5=900 sec)
+        NUMTRIES=180
+        LASTRET=1
+        LASTSTATUS="unknown"
+        COMBSTAT=99
+        RUNSTAT=0
+        while [ $NUMTRIES -ne 0 ] && [ $COMBSTAT -ne 0 ]; do
+            let REMTIME=NUMTRIES*5
+            LASTSTATUS=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.phase}}${CRLF}{{end}}" 2>/dev/null`
+            LASTRET=$?
+            if [ $? -ne 0 ]; then
+                echo -n "Cassandra get pods not problem $REMTIME                                         $CR"
+                COMBSTAT=99
+                let NUMTRIES=NUMTRIES-1
+                sleep 5
+            else
+                #echo "Cassandra get pods found - evaluate statuses -----"
+                #
+                # pre set the default
+                COMBSTAT=0
+                RUNSTAT=0
+                for STATE in $LASTSTATUS; do
+                    #echo $STATE
+                    # only takes one not running
+                    if [ "$STATE" != "Running" ]; then
+                        let COMBSTAT=COMBSTAT+1
+                    else
+                        let RUNSTAT=RUNSTAT+1
+                    fi
+                done
+                if [ $COMBSTAT -ne 0 ]; then
+                    echo -n "$COMBSTAT Cassandra pods NOT running, $RUNSTAT running. $REMTIME secs remaining  $CR"
+                    let NUMTRIES=NUMTRIES-1
+                    sleep 5
+                else
+                    echo ""
+                    echo "$RUNSTAT Cassandra pods are running!"
+                fi
+            fi
+        done
+        echo ""
+        if [ $NUMTRIES -le 0 ]; then
+            echo "Cassandra pods did not start in alotted time...exiting"
+            # clean up the potential mess
+            . ./demo-down.sh
+            exit 4
+        fi
 
+    else
+        echo "All Cassadra Replicas are started"
+    fi
+fi
+echo " "
+#
 $kubectl_local get pods opscenter 2>/dev/null
 if [ $? -ne 0 ];then
     # start a new one
@@ -231,9 +393,7 @@ LASTRET=1
 LASTSTATUS="unknown"
 while [ $NUMTRIES -ne 0 ] && [ "$LASTSTATUS" != "Running" ]; do
     let REMTIME=NUMTRIES*5
-    #v1beta3
     LASTSTATUS=`$kubectl_local get pods opscenter --output=template --template={{.status.phase}} 2>/dev/null`
-    #LASTSTATUS=`$kubectl_local get pods opscenter --output=template --template={{.currentState.status}} 2>/dev/null`
     LASTRET=$?
     if [ $? -ne 0 ]; then
         echo -n "Opscenter pod not found $REMTIME"
@@ -272,62 +432,6 @@ if [ $NUMTRIES -le 0 ]; then
     exit 3
 fi
 echo " "
-#
-# loop over all cassandra instances until running!
-#
-#
-# allow 15 minutes for these to come up (180*5=900 sec)
-NUMTRIES=180
-LASTRET=1
-LASTSTATUS="unknown"
-COMBSTAT=99
-RUNSTAT=0
-while [ $NUMTRIES -ne 0 ] && [ $COMBSTAT -ne 0 ]; do
-    let REMTIME=NUMTRIES*5
-    #v1beta3
-    LASTSTATUS=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.phase}}${CRLF}{{end}}" 2>/dev/null`
-    #LASTSTATUS=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.currentState.status}}${CRLF}{{end}}" 2>/dev/null`
-    LASTRET=$?
-    if [ $? -ne 0 ]; then
-        echo -n "Cassandra get pods not problem $REMTIME                                         $CR"
-        COMBSTAT=99
-        let NUMTRIES=NUMTRIES-1
-        sleep 5
-    else
-        #echo "Cassandra get pods found - evaluate statuses -----"
-        #
-        # pre set the default
-        COMBSTAT=0
-        RUNSTAT=0
-        for STATE in $LASTSTATUS; do
-            #echo $STATE
-            # only takes one not running
-            if [ "$STATE" != "Running" ]; then
-                let COMBSTAT=COMBSTAT+1
-            else
-                let RUNSTAT=RUNSTAT+1
-            fi
-        done
-        if [ $COMBSTAT -ne 0 ]; then
-            echo -n "$COMBSTAT Cassandra pods NOT running, $RUNSTAT running. $REMTIME secs remaining  $CR"
-            let NUMTRIES=NUMTRIES-1
-            sleep 5
-        else
-            echo ""
-            echo "$RUNSTAT Cassandra pods are running!"
-        fi
-    fi
-done
-echo ""
-if [ $NUMTRIES -le 0 ]; then
-    echo "Cassandra pods did not start in alotted time...exiting"
-    # clean up the potential mess
-    . ./demo-down.sh
-    exit 4
-fi
-echo " "
-echo "Pods:"
-$kubectl_local get pods
 echo " "
 #
 # git the user the correct URLs for opscenter and connecting that to the cluster
