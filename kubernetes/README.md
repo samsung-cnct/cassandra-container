@@ -15,13 +15,22 @@ There are 2 scripts: ````demo-run.sh```` and ````demo-down.sh````.
 
       kubectl='/opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig='\''/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig'\'''
 
-* Starts the Opscenter and Cassandra services and waits until they are running
-* Starts the Opscenter Pod and the Cassandra Replication Controller
+* Checks if the Opscenter Service running and starts it.
+* Checks if the Cassandra Service running and starts it.
+* Waits until both services are running.
+* Extracts the desired number of cassandra replicas from the  cassandra-controller.yaml
+* Checks if the Cassandra Replication Controller is running, and starts it, but alters the number of replicas to 1. (for the cassandra seed)
+* Waits until that pod starts. (up to 15 minutes)
+* After that cassandra seed pod starts, wait 10 seconds to allow all the comm to settle.
+* Check if the total number of cassandra replicas are running, and resizes to the original desired size.
+* Waits until all pods are running. (up to 15 minutes)
+* Starts the Opscenter Pod.
 * Waits until Opscenter is running (up to 10 minutes)
-* Waits until all the Cassandra Pods are running (up to 15 minutes after Opscenter)
 * Locates the IPs and Ports and provides information to about the connections
 * Control-C at any point will terminate and tear down the entire setup (via ````demo-down.sh````)
 * Any error will terminate and tear down the entire setup (via ````demo-down.sh````)
+* This script can be run multiple times without problems.  I evaluates if every step is already running.  
+* Occasionally the cassandra cluster does not see the other nodes.  If this happens run the script again (sometimes it will catch a missing replicated node).  If that does not work, run demo-down.sh and demo-run.sh again.
 
 #### ````demo-down.sh````
 * Locates the Kubectl needed for Kraken
@@ -33,190 +42,6 @@ There are 2 scripts: ````demo-run.sh```` and ````demo-down.sh````.
 * Removes all services
 * Resizes the Cassandra RC to Zero
 * Removes the Cassandra RC and Opscenter Pods
-
-#### Example Run
-* Start the Kraken CoreOS Cluster
-
-      l2067532491-mn:kubernetes mikel_nelson$ alias kubectl='/opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig='\''/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig'\'''
-      l2067532491-mn:kubernetes mikel_nelson$ pwd
-       /Users/mikel_nelson/dev/cloud/kraken/kubernetes
-      l2067532491-mn:kubernetes mikel_nelson$ vagrant up
-       Bringing machine 'etcd-node' up with 'virtualbox' provider...
-       Bringing machine 'master-node' up with 'virtualbox' provider...
-       Bringing machine 'minion-01' up with 'virtualbox' provider...
-       Bringing machine 'minion-02' up with 'virtualbox' provider...
-       ==> etcd-node: Importing base box 'coreos-alpha'...
-           :
-           Lots more stuff here
-           :
-       ==> minion-02: Running triggers after up...
-       ==> minion-02: making sure ssh agent has the default vagrant key...
-       Identity added: /Users/mikel_nelson/.vagrant.d/insecure_private_key (/Users/mikel_nelson/.vagrant.d/insecure_private_key)
-      l2067532491-mn:kubernetes mikel_nelson$ kub get minions
-       F0416 15:48:43.430323   10086 get.go:70] Client error: Get http://172.16.1.102:8080/api/v1beta1/minions: dial tcp 172.16.1.102:8080: connection refused
-            
-            wait until minions are up
-            
-      l2067532491-mn:kubernetes mikel_nelson$ vagrant status
-       Current machine states:
-
-       etcd-node                 running (virtualbox)
-       master-node               running (virtualbox)
-       minion-01                 running (virtualbox)
-       minion-02                 running (virtualbox)
-
-       This environment represents multiple VMs. The VMs are all listed
-       above with their current state. For more information about a specific
-       VM, run `vagrant status NAME`.
-      l2067532491-mn:kubernetes mikel_nelson$ kub get minions
-       NAME           LABELS    STATUS
-       172.16.1.103   <none>    Ready
-       172.16.1.104   <none>    Ready
-           
-* Execute ````demo-run.sh````
-
-      l2067532491-mn:kubernetes mikel_nelson$ ./demo-run.sh
-
-       ==================================================
-          Attempting to Start the
-          Cassandra/Opscenter Kubernetes Demo
-       ==================================================
-          !!! NOTE  !!!
-          This script uses our kraken project assumptions:
-             kubectl will be located at (for OS-X):
-                /opt/kubernetes/platforms/darwin/amd64/kubectl
-             .kubeconfig is from our kraken project
-
-          Also, your Kraken Kubernetes Cluster Must be
-          up and Running.
-       ==================================================
-
-       Locating Kraken Project kubectl and .kubeconfig...
-       DEVBASE /Users/mikel_nelson/dev/cloud
-       found: /Users/mikel_nelson/dev/cloud/kraken
-       found: /Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig
-       found: /opt/kubernetes/platforms/darwin/amd64/kubectl
-       kubectl present: /opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig=/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig
-
-       +++++ starting cassandra services ++++++++++++++++++++++++++++
-       services/cassandra-opscenter
-       Opscenter service started
-       services/cassandra
-       Cassandra service started
-
-       Services List:
-       NAME                  LABELS                                    SELECTOR         IP                     PORT
-       cassandra             <none>                                    name=cassandra   10.100.28.42    9042
-       cassandra-opscenter   <none>                                    name=opscenter   10.100.69.247   8888
-       kubernetes            component=apiserver,provider=kubernetes   <none>           10.100.0.2      443
-       kubernetes-ro         component=apiserver,provider=kubernetes   <none>           10.100.0.1      80
-
-       NAME        LABELS    SELECTOR         IP             PORT
-       cassandra   <none>    name=cassandra   10.100.28.42   9042
-       Cassandra service found
-       NAME                  LABELS    SELECTOR         IP              PORT
-       cassandra-opscenter   <none>    name=opscenter   10.100.69.247   8888
-       Opscenter service found
-
-       +++++ starting cassandra pods ++++++++++++++++++++++++++++
-       replicationControllers/cassandra
-       Cassandra replication controller and pod started
-
-       Replication Controllers:
-       CONTROLLER   CONTAINER(S)   IMAGE(S)                      SELECTOR         REPLICAS
-       cassandra    cassandra      mikeln/cassandra_kub_mln:v9   name=cassandra   2
-
-       pods/opscenter
-       Opscenter pod started
-
-       Pods:
-       POD               IP        CONTAINER(S)   IMAGE(S)                      HOST            LABELS           STATUS    CREATED
-       cassandra-qvwq6             cassandra      mikeln/cassandra_kub_mln:v9   <unassigned>    name=cassandra   Pending   Less than a second
-       cassandra-w3mpc             cassandra      mikeln/cassandra_kub_mln:v9   172.16.1.104/   name=cassandra   Pending   Less than a second
-       opscenter                   opscenter      mikeln/opscenter-kub-mln:v1   <unassigned>    name=opscenter   Pending   Less than a second
-       Opscenter pod: Waiting - NOT running 595 secs remaining...........................................................
-       Opscenter pod running!
-
-       2 Cassandra pods NOT running, 0 running. 885 secs remaining
-       2 Cassandra pods are running!
-
-
-       Pods:
-       POD               IP            CONTAINER(S)   IMAGE(S)                      HOST                        LABELS           STATUS    CREATED
-       cassandra-qvwq6   10.244.58.3   cassandra      mikeln/cassandra_kub_mln:v9   172.16.1.103/172.16.1.103   name=cassandra   Running   11 minutes
-       cassandra-w3mpc   10.244.50.3   cassandra      mikeln/cassandra_kub_mln:v9   172.16.1.104/172.16.1.104   name=cassandra   Running   11 minutes
-       opscenter         10.244.50.4   opscenter      mikeln/opscenter-kub-mln:v1   172.16.1.104/172.16.1.104   name=opscenter   Running   11 minutes
-
-       ====================================================================
-
-         Cassandra Demo Cluster with Opscenter is Up!
-
-         Opscenter should be accessible via a web browser at this IP:Port
-
-             10.100.69.247:8888
-
-        However! There have been issues on certain platforms with the
-        service IP given.  If you have issues with that, then you may
-        alternatively use one of the minion node public IPs listed:
-
-             [172.16.1.103 172.16.1.104]:8888
-
-        Once you have the opscenter UI up, you may "Add An Existing Cluster"
-        supplying one of the cassandra POD IPs from the following list:
-
-             10.244.58.3, 10.244.50.3,
-
-        You should not try to control the cluster from the UI, just monitor.
-
-        Please run ./demo-down.sh to stop and remove the demo when you
-        are finished.
-
-       ====================================================================
-       +++++ cassandra started in Kubernetes ++++++++++++++++++++++++++++
-       
-* Execute ````demo-down.sh````
-
-       l2067532491-mn:kubernetes mikel_nelson$ ./demo-down.sh
-
-      ==================================================
-         Attempting to Stop and Delete the
-         Cassandra/Opscenter Kubernetes Demo
-      ==================================================
-
-      Locating kubectl and .kubeconfig...
-      DEVBASE /Users/mikel_nelson/dev/cloud
-      found: /Users/mikel_nelson/dev/cloud/kraken
-      found: /Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig
-      found: /opt/kubernetes/platforms/darwin/amd64/kubectl
-      kubectl present: /opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig=/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig
-
-      +++++ stopping cassandra services ++++++++++++++++++++++++++++
-      services/cassandra-opscenter
-      Opscenter service deleted
-      services/cassandra
-      Cassandra service deleted
-
-      Remaining Services List:
-      NAME            LABELS                                    SELECTOR   IP           PORT
-      kubernetes      component=apiserver,provider=kubernetes   <none>     10.100.0.2   443
-      kubernetes-ro   component=apiserver,provider=kubernetes   <none>     10.100.0.1   80
-
-      +++++ stopping cassandra pods ++++++++++++++++++++++++++++
-      resized
-      Cassandra pods deleted
-      replicationControllers/cassandra
-      Cassandra Replication Controller deleted
-
-      Remaining Replication Controllers:
-      CONTROLLER   CONTAINER(S)   IMAGE(S)   SELECTOR   REPLICAS
-
-      pods/opscenter
-      Opscenter pods deleted
-
-      Remaining Pods:
-      POD       IP        CONTAINER(S)   IMAGE(S)   HOST      LABELS    STATUS    CREATED
-
-      +++++ cassandra stopped and deleted from Kubernetes ++++++++++++++++++++++++++++
 
 
 ### Sequence

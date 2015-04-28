@@ -182,6 +182,11 @@ echo "+++++ starting cassandra pods ++++++++++++++++++++++++++++"
 #
 FINAL_SIZE=`grep "replicas:" cassandra-controller.yaml | cut -d ':' -f2 | tr -d '[[:space:]]'`
 #
+# pipe the file in, so we can replace the replicas: xx with replicas: 1.
+# This does 2 things:
+#     1) Starts a single copy of cassandra.  It will make itself the seed
+#     2) Does not alter the original file in any way
+#
 $kubectl_local get rc cassandra 2>/dev/null
 if [ $? -ne 0 ]; then
     #
@@ -196,25 +201,21 @@ if [ $? -ne 0 ]; then
     # Wait for pod startup.
     # Then resize to pulled value
     #
-    $kubectl_local create -f cassandra-controller.yaml
+    # pipe the file in, so we can replace the replicas: xx with replicas: 1.
+    # This does 2 things:
+    #     1) Starts a single copy of cassandra.  It will make itself the seed
+    #     2) Does not alter the original file in any way
+    #
+    #$kubectl_local create -f cassandra-controller.yaml
+    cat cassandra-controller.yaml | sed 's/replicas:[ 1234567890]*/replicas: 1/' | $kubectl_local create -f -
+    # TODO: this error may be bogus..
     if [ $? -ne 0 ]; then
         echo "Cassandra replication controller error"
         . ./demo-down.sh
         # clean up the potential mess
         exit 3
     else
-        echo "Cassandra replication controller and pod started"
-        #
-        # resize down to 1... TODO: may be ineffecient..vs just starting 1 initially
-        $kubectl_local resize --replicas=1 rc cassandra 2>/dev/null
-        if [ $? -ne 0 ]; then
-            echo "Cassandra pods resize error"
-            . ./demo-down.sh
-            # clean up the potential mess
-            exit 3
-        else
-            echo "Cassandra pods resized to 1 until start"
-        fi
+        echo "Cassandra replication controller and seed pod started"
     fi
 else
     echo "Cassandra replication controller already running...skipping"
