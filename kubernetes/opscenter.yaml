@@ -7,9 +7,9 @@ metadata:
 spec:
     containers:
       - name: opscenter
-        image: mikeln/opscenter_kub_mln:v3
+        image: quay.io/mikeln/opscenter_kub_mln:v3
         limits:
-            cpu: 100
+            cpu: 1
         ports:
           - name: web 
             containerPort: 8888

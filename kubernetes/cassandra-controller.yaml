@@ -5,7 +5,7 @@ metadata:
         name: cassandra
     name: cassandra
 spec:
-  replicas: 2
+  replicas: 20
   selector:
     name: cassandra
   template:
@@ -15,7 +15,7 @@ spec:
     spec:
         containers:
           - name: cassandra
-            image: mikeln/cassandra_kub_mln:v13
+            image: quay.io/mikeln/cassandra_kub_mln:v13
             resources:
                 limits:
                     cpu: 1
