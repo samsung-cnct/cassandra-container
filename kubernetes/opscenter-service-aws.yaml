@@ -1,0 +1,15 @@
+apiVersion: v1beta3
+kind: Service
+metadata:
+    labels: 
+        name: opscenter
+    name: opscenter
+spec:
+    ports:
+        - name: webui
+          port: 8888
+          targetPort: 8888
+    publicIPs: [ 10.1.1.103 ]
+    selector:
+        name: opscenter
+
