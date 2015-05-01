@@ -15,7 +15,7 @@ function usage
     echo ""
     echo "Flags:"
     echo "  -c, --cluster : local : [local, aws, ???] selects the cluster yaml/json to use"
-    echo "  -h, --help :: print usage"
+    echo "  -h, -?, --help :: print usage"
     echo "  -v, --version :: print script verion"
     echo ""
 }
@@ -65,7 +65,7 @@ while [ "$1" != "" ]; do
             version
             exit
             ;;
-        -h | --help )
+        -h | -? | --help )
             usage
             exit
             ;;
@@ -311,6 +311,7 @@ if [ $? -ne 0 ]; then
     . ./demo-down.sh
     exit 3
 else
+    echo "Current cassandra initial nodes: $CUR_SIZE final wanted: $FINAL_SIZE"
     if [ $CUR_SIZE -lt $FINAL_SIZE ]; then
         # start the others
         #

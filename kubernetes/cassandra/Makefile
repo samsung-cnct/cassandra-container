@@ -5,7 +5,7 @@
 #
 # 3/12/2015 mln
 #
-VERSION := v14tiny
+VERSION := v14slim
 #
 # do some repo evals... want everyone to use their own, unless building for the team
 #
@@ -38,12 +38,12 @@ build-all: build-app
 
 build-app: $(DOCKER_IMAGE)
 
-$(DOCKER_IMAGE): Dockerfile.kub.tiny init.sh KubSeedProv-2.0-SNAPSHOT.jar cassandra.yaml
+$(DOCKER_IMAGE): Dockerfile.kub.slim init.sh KubSeedProv-2.0-SNAPSHOT.jar cassandra.yaml
 	@echo "building app $(VERSION)"
 	#
 	# workaround until docker 1.5.0 -f
-	cp Dockerfile.kub.tiny Dockerfile
-	#docker build -f Dockerfile.kub.tiny -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) .
+	cp Dockerfile.kub.slim Dockerfile
+	#docker build -f Dockerfile.kub.slim -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) .
 	docker build -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) --rm=true --force-rm=true .
 	@touch $@
 	@docker images $(REPO)/$(DOCKER_IMAGE)
