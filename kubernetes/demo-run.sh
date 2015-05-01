@@ -4,6 +4,25 @@
 #
 # 4/15/2015 mikeln
 #-------
+#
+VERSION="1.0"
+function usage
+{
+    echo "Runs cassandra cluster and opscenter"
+    echo ""
+    echo "Usage:"
+    echo "   demo-run.sh [flags]" 
+    echo ""
+    echo "Flags:"
+    echo "  -c, --cluster : local : [local, aws, ???] selects the cluster yaml/json to use"
+    echo "  -h, -?, --help :: print usage"
+    echo "  -v, --version :: print script verion"
+    echo ""
+}
+function version
+{
+    echo "demo-run.sh version $VERSION"
+}
 # some best practice stuff
 CRLF=$'\n'
 CR=$'\r'
@@ -13,6 +32,7 @@ echo " "
 echo "=================================================="
 echo "   Attempting to Start the"
 echo "   Cassandra/Opscenter Kubernetes Demo"
+echo "   version: $VERSION"
 echo "=================================================="
 echo "  !!! NOTE  !!!"
 echo "  This script uses our kraken project assumptions:"
@@ -30,6 +50,41 @@ trap "echo ' ';echo ' ';echo 'SIGNAL CAUGHT, SCRIPT TERMINATING, cleaning up'; .
 #----------------------
 # start the services first...this is so the ENV vars are available to the pods
 #----------------------
+#
+# process args
+#
+CLUSTER_LOC="local"
+TMP_LOC=$CLUSTER_LOC
+while [ "$1" != "" ]; do
+    case $1 in
+        -c | --cluster )
+            shift
+            TMP_LOC=$1
+            ;;
+        -v | --version )
+            version
+            exit
+            ;;
+        -h | -? | --help )
+            usage
+            exit
+            ;;
+         * ) 
+             usage
+             exit 1
+    esac
+    shift
+done
+if [ -z "$TMP_LOC" ] || ( [ "$TMP_LOC" != "aws" ] && [ "$TMP_LOC" != "local" ] );then
+    echo ""
+    echo "ERROR Invalid Cluster Location: $TMP_LOC"
+    echo ""
+    usage
+    exit 1
+else
+    CLUSTER_LOC=$TMP_LOC
+fi
+echo "Using Kubernetes cluster: $CLUSTER_LOC"
 #
 # check to see if kubectl has been configured
 #
@@ -97,7 +152,19 @@ echo "+++++ starting cassandra services ++++++++++++++++++++++++++++"
 #
 $kubectl_local get services cassandra 2>/dev/null
 if [ $? -ne 0 ]; then
-    $kubectl_local create -f cassandra-service.yaml
+    #
+    #  Use cluster arg to find the desired yaml
+    #       e.g.  <blah>-aws.yaml, <blah>-local.yaml 
+    #             or <blah>.yaml if local and local isn't present
+    #
+    CASS_SERVICE_BASE_NAME="cassandra-service"
+    CASS_SERVICE_YAML="$CASS_SERVICE_BASE_NAME-$CLUSTER_LOC.yaml"
+    if [ ! -f "$CASS_SERVICE_YAML" ]; then
+        echo "WARNING $CASS_SERVICE_YAML not found.  Using $CASS_SERVICE_BASE_NAME.yaml instead."
+        CASS_SERVICE_YAML="$CASS_SERVICE_BASE_NAME.yaml"
+    fi
+    #$kubectl_local create -f cassandra-service.yaml
+    $kubectl_local create -f $CASS_SERVICE_YAML
     if [ $? -ne 0 ]; then
         echo "Cassandra service start error"
         . ./demo-down.sh
@@ -134,7 +201,19 @@ fi
 
 $kubectl_local get services opscenter 2>/dev/null
 if [ $? -ne 0 ]; then
-    $kubectl_local create -f  opscenter-service.yaml
+    #
+    # use cluster arg to find the desired yaml
+    #       e.g.  <blah>-aws.yaml, <blah>-local.yaml 
+    #             or <blah>.yaml if local and local isn't present
+    #
+    OPS_SERVICE_BASE_NAME="opscenter-service"
+    OPS_SERVICE_YAML="$OPS_SERVICE_BASE_NAME-$CLUSTER_LOC.yaml"
+    if [ ! -f "$OPS_SERVICE_YAML" ]; then
+        echo "WARNING $OPS_SERVICE_YAML not found.  Using $OPS_SERVICE_BASE_NAME.yaml instead."
+        OPS_SERVICE_YAML="$OPS_SERVICE_BASE_NAME.yaml"
+    fi
+    #$kubectl_local create -f  opscenter-service.yaml
+    $kubectl_local create -f $OPS_SERVICE_YAML
     if [ $? -ne 0 ]; then
         echo "Opscenter service start error"
         # clean up the potential mess
@@ -232,6 +311,7 @@ if [ $? -ne 0 ]; then
     . ./demo-down.sh
     exit 3
 else
+    echo "Current cassandra initial nodes: $CUR_SIZE final wanted: $FINAL_SIZE"
     if [ $CUR_SIZE -lt $FINAL_SIZE ]; then
         # start the others
         #

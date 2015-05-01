@@ -5,7 +5,7 @@
 #
 # 3/12/2015 mln
 #
-VERSION := v13
+VERSION := v14slim
 #
 # do some repo evals... want everyone to use their own, unless building for the team
 #
@@ -38,19 +38,19 @@ build-all: build-app
 
 build-app: $(DOCKER_IMAGE)
 
-$(DOCKER_IMAGE): Dockerfile.kub init.sh KubSeedProv-2.0-SNAPSHOT.jar cassandra.yaml
+$(DOCKER_IMAGE): Dockerfile.kub.slim init.sh KubSeedProv-2.0-SNAPSHOT.jar cassandra.yaml
 	@echo "building app $(VERSION)"
 	#
 	# workaround until docker 1.5.0 -f
-	cp Dockerfile.kub Dockerfile
-	#docker build -f Dockerfile.inject -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) .
+	cp Dockerfile.kub.slim Dockerfile
+	#docker build -f Dockerfile.kub.slim -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) .
 	docker build -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) --rm=true --force-rm=true .
 	@touch $@
 	@docker images $(REPO)/$(DOCKER_IMAGE)
 
-KubSeedProv-1.1-SNAPSHOT.jar:
+KubSeedProv-2.0-SNAPSHOT.jar:
 	@echo "=========================================================================="
-	@echo "KubSeedProv-1.1-SNAPSHOT.jar is built in the java directory via mvn build"
+	@echo "KubSeedProv-2.0-SNAPSHOT.jar is built in the java directory via mvn build"
 	@echo "  You will have to build it by hand.  Build is not automated"
 	@echo "=========================================================================="
 

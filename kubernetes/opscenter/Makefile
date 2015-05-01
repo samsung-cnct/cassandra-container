@@ -5,7 +5,7 @@
 #
 # 3/19/2015 mln
 #
-VERSION := v3
+VERSION := v4slim
 #
 # do some repo evals... want everyone to use their own, unless building for the team
 #
@@ -38,12 +38,12 @@ build-all: build-app
 
 build-app: $(DOCKER_IMAGE)
 
-$(DOCKER_IMAGE): Dockerfile.kub init.sh 
+$(DOCKER_IMAGE): Dockerfile.kub.slim init.sh 
 	@echo "building app $(VERSION)"
 	#
 	# workaround until docker 1.5.0 -f
-	cp Dockerfile.kub Dockerfile
-	#docker build -f Dockerfile.inject -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) .
+	cp Dockerfile.kub.slim Dockerfile
+	#docker build -f Dockerfile.kub.slim -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) .
 	docker build -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) --rm=true --force-rm=true .
 	@touch $@
 	@docker images $(REPO)/$(DOCKER_IMAGE)

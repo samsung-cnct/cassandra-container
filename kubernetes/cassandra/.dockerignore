@@ -3,7 +3,10 @@
 .gitignore
 init.sh.orig
 Dockerfile.*
+KubSeedProv-1.0-SNAPSHOT.jar
+KubSeedProv-1.1-SNAPSHOT.jar
+Makefile
+README.md
 cassandra_kub_mln
 cassandra_kub
-README.md
-Makefile
+kubernetes-cassandra.jar
