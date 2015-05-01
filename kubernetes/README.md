@@ -12,17 +12,22 @@ There are 2 scripts: ````demo-run.sh```` and ````demo-down.sh````.
 * Locates the Kubectl needed for Kraken
 * Usage:
 
-       demo-run.sh [flags]
+````
+        demo-run.sh [flags]
 
-       Flags:
-         -c, --cluster : local : [local, aws, ???] selects the cluster yaml/json to use
-         -h, -?, --help :: print usage
-         -v, --version :: print script verion
+        Flags:
+          -c, --cluster : local : [local, aws, ???] selects the cluster yaml/json to use
+          -h, -?, --help :: print usage
+          -v, --version :: print script verion
+
+````
 
 * Locates the .kubeconfig in the kraken/kubernetes directory
 * Uses the information to construct the correct ````kubectl```` command.  e.g.:
 
-      kubectl='/opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig='\''/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig'\'''
+````
+        kubectl='/opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig='\''/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig'\'''
+````
 
 * Checks if the Opscenter Service running and starts it.
 * Checks if the Cassandra Service running and starts it.
@@ -46,7 +51,9 @@ There are 2 scripts: ````demo-run.sh```` and ````demo-down.sh````.
 * Locates the .kubeconfig in the kraken/kubernetes directory
 * Uses the information to construct the correct ````kubectl```` command.  e.g.:
 
-      kubectl='/opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig='\''/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig'\'''
+````
+        kubectl='/opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig='\''/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig'\'''
+````
 
 * Removes all services
 * Resizes the Cassandra RC to Zero
