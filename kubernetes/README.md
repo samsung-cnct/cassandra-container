@@ -10,6 +10,15 @@ There are 2 scripts: ````demo-run.sh```` and ````demo-down.sh````.
 
 #### ````demo-run.sh```` 
 * Locates the Kubectl needed for Kraken
+* Usage:
+
+       demo-run.sh [flags]
+
+       Flags:
+         -c, --cluster : local : [local, aws, ???] selects the cluster yaml/json to use
+         -h, -?, --help :: print usage
+         -v, --version :: print script verion
+
 * Locates the .kubeconfig in the kraken/kubernetes directory
 * Uses the information to construct the correct ````kubectl```` command.  e.g.:
 
