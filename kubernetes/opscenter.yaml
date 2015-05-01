@@ -7,7 +7,7 @@ metadata:
 spec:
     containers:
       - name: opscenter
-        image: quay.io/mikeln/opscenter_kub_mln:v3
+        image: quay.io/mikeln/opscenter_kub_mln:v4slim
         limits:
             cpu: 1
         ports:

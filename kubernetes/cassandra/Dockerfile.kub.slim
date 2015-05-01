@@ -1,0 +1,48 @@
+##
+##    Cassandra (kubernetes)
+##
+##
+FROM debian:wheezy
+MAINTAINER Mikel Nelson <mikel.n@samsung.com>
+
+# Add PPA for the necessary JDK
+RUN echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu precise main" | tee /etc/apt/sources.list.d/webupd8team-java.list \
+    && echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu precise main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886 \
+    && apt-get update -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    curl \
+    sudo \
+    vim-tiny \
+    && echo "oracle-java7-installer	shared/accepted-oracle-license-v1-1	boolean	true" > /tmp/oracle-license-debconf \
+    && /usr/bin/debconf-set-selections /tmp/oracle-license-debconf \
+    && rm /tmp/oracle-license-debconf \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    oracle-java7-installer \
+    oracle-java7-set-default \
+    && apt-get update -y \
+    && echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/datastax.sources.list \
+    && curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add - \
+    && apt-get update -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    dsc20=2.0.11-1 \
+    cassandra=2.0.11  \
+    datastax-agent=5.1.1 \
+    sysstat \
+    procps \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+#
+# USE OUR VERSION OF cassandra.yaml... it has the correct java seed impl and the needed perl markers for IP substitution
+COPY cassandra.yaml /etc/cassandra/cassandra.yaml
+COPY KubSeedProv-2.0-SNAPSHOT.jar /kubernetes-cassandra.jar
+COPY init.sh /usr/local/bin/cass-dock
+COPY shutdown.sh /usr/local/bin/cass-stop
+RUN chmod 644 /kubernetes-cassandra.jar \
+    && chmod 755 /usr/local/bin/cass-dock \
+    && chmod 755 /usr/local/bin/cass-stop
+
+EXPOSE 7199 7000 7001 9160 9042
+EXPOSE 61620 61621 50031
+#v1 EXPOSE 22 61620 61621 50031
+USER root
+CMD cass-dock
