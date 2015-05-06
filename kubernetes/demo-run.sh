@@ -43,10 +43,6 @@ echo " "
 echo "  Also, your Kraken Kubernetes Cluster Must be"
 echo "  up and Running.  "
 echo "=================================================="
-#
-# setup trap for script signals
-#
-trap "echo ' ';echo ' ';echo 'SIGNAL CAUGHT, SCRIPT TERMINATING, cleaning up'; . ./demo-down.sh; exit 9 " SIGHUP SIGINT SIGTERM
 #----------------------
 # start the services first...this is so the ENV vars are available to the pods
 #----------------------
@@ -75,9 +71,9 @@ while [ "$1" != "" ]; do
     esac
     shift
 done
-if [ -z "$TMP_LOC" ] || ( [ "$TMP_LOC" != "aws" ] && [ "$TMP_LOC" != "local" ] );then
+if [ -z "$TMP_LOC" ];then
     echo ""
-    echo "ERROR Invalid Cluster Location: $TMP_LOC"
+    echo "ERROR No Cluster Supplied."
     echo ""
     usage
     exit 1
@@ -85,6 +81,10 @@ else
     CLUSTER_LOC=$TMP_LOC
 fi
 echo "Using Kubernetes cluster: $CLUSTER_LOC"
+#
+# setup trap for script signals
+#
+trap "echo ' ';echo ' ';echo 'SIGNAL CAUGHT, SCRIPT TERMINATING, cleaning up'; . ./demo-down.sh --cluster $CLUSTER_LOC; exit 9 " SIGHUP SIGINT SIGTERM
 #
 # check to see if kubectl has been configured
 #
@@ -104,9 +104,10 @@ if [ $? -ne 0 ];then
 else
     echo "found: $KRAKENDIR"
 fi
-KUBECONFIG=`find ${KRAKENDIR} -type f -name ".kubeconfig" -print | egrep 'kubernetes'`
+KUBECONFIG=`find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC} -type f -name ".kubeconfig" -print | egrep '.*'`
 if [ $? -ne 0 ];then
-    echo "Could not find Kraken .kubeconfig"
+    echo "Could not find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC}/.kubeconfig"
+    exit 1
 else
     echo "found: $KUBECONFIG"
 fi
@@ -167,7 +168,7 @@ if [ $? -ne 0 ]; then
     $kubectl_local create -f $CASS_SERVICE_YAML
     if [ $? -ne 0 ]; then
         echo "Cassandra service start error"
-        . ./demo-down.sh
+        . ./demo-down.sh --cluster $CLUSTER_LOC
         # clean up the potential mess
         exit 2
     else
@@ -191,8 +192,7 @@ if [ $? -ne 0 ]; then
         if [ $NUMTRIES -le 0 ]; then
             echo "Cassandra Service did not start in alotted time...exiting"
             # clean up the potential mess
-            . ./demo-down.sh
-            exit 2
+            . . 2
         fi
     fi
 else
@@ -217,7 +217,7 @@ if [ $? -ne 0 ]; then
     if [ $? -ne 0 ]; then
         echo "Opscenter service start error"
         # clean up the potential mess
-        . ./demo-down.sh
+        . ./demo-down.sh --cluster $CLUSTER_LOC
         exit 2
     else
         echo "Opscenter service started"
@@ -240,7 +240,7 @@ if [ $? -ne 0 ]; then
         if [ $NUMTRIES -le 0 ]; then
             echo "Opscenter Service did not start in alotted time...exiting"
             # clean up the potential mess
-            . ./demo-down.sh
+            . ./demo-down.sh --cluster $CLUSTER_LOC
             exit 2
         fi
     fi
@@ -290,7 +290,7 @@ if [ $? -ne 0 ]; then
     # TODO: this error may be bogus..
     if [ $? -ne 0 ]; then
         echo "Cassandra replication controller error"
-        . ./demo-down.sh
+        . ./demo-down.sh --cluster $CLUSTER_LOC
         # clean up the potential mess
         exit 3
     else
@@ -308,7 +308,7 @@ echo " "
 CUR_SIZE=`$kubectl_local get rc  cassandra --output=template --template="{{$.status.replicas}}" 2>/dev/null`
 if [ $? -ne 0 ]; then
     echo "Error getting number of Cassandra Pods Replicated"
-    . ./demo-down.sh
+    . ./demo-down.sh --cluster $CLUSTER_LOC
     exit 3
 else
     echo "Current cassandra initial nodes: $CUR_SIZE final wanted: $FINAL_SIZE"
@@ -361,7 +361,7 @@ else
         if [ $NUMTRIES -le 0 ]; then
             echo "Cassandra seed pods did not start in alotted time...exiting"
             # clean up the potential mess
-            . ./demo-down.sh
+            . ./demo-down.sh --cluster $CLUSTER_LOC
             exit 4
         fi
         echo "Pods:"
@@ -380,7 +380,7 @@ else
         $kubectl_local resize --replicas=$FINAL_SIZE rc cassandra 2>/dev/null
         if [ $? -ne 0 ]; then
             echo "Cassandra pods resize up error"
-            . ./demo-down.sh
+            . ./demo-down.sh --cluster $CLUSTER_LOC
             # clean up the potential mess
             exit 3
         else
@@ -434,7 +434,7 @@ else
         if [ $NUMTRIES -le 0 ]; then
             echo "Cassandra pods did not start in alotted time...exiting"
             # clean up the potential mess
-            . ./demo-down.sh
+            . ./demo-down.sh --cluster $CLUSTER_LOC
             exit 4
         fi
 
@@ -450,7 +450,7 @@ if [ $? -ne 0 ];then
     $kubectl_local create -f opscenter.yaml
     if [ $? -ne 0 ]; then
         echo "Opscenter pod error"
-        . ./demo-down.sh
+        . ./demo-down.sh --cluster $CLUSTER_LOC
         # clean up the potential mess
         exit 3
     else
@@ -509,7 +509,7 @@ echo ""
 if [ $NUMTRIES -le 0 ]; then
     echo "Opscenter pod did not start in alotted time...exiting"
     # clean up the potential mess
-    . ./demo-down.sh
+    . ./demo-down.sh --cluster $CLUSTER_LOC
     exit 3
 fi
 echo " "
@@ -557,7 +557,7 @@ if [ -z "$VALIDIPS" ];then
     echo "Please correct your opscenter-service.yaml file publicIPs: entry to include"
     echo "at least one of the Node IPs lists above"
     echo ""
-    echo "Leaving demo up.  You may tear id down via ./demo-down.sh"
+    echo "Leaving demo up.  You may tear id down via ./demo-down.sh --cluster $CLUSTER_LOC"
     echo "======!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!=================="
 #    exit 99
 fi
@@ -588,7 +588,7 @@ done
 echo " "
 echo " You should not try to control the cluster from the UI, just monitor."
 echo " "
-echo " Please run ./demo-down.sh to stop and remove the demo when you"
+echo " Please run ./demo-down.sh --cluster $CLUSTER_LOC to stop and remove the demo when you"
 echo " are finished."
 echo " "
 echo " To change the number of cassandra nodes, use the kubectl resize command:"
