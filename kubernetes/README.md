@@ -48,6 +48,18 @@ There are 2 scripts: ````demo-run.sh```` and ````demo-down.sh````.
 
 #### ````demo-down.sh````
 * Locates the Kubectl needed for Kraken
+* Usage:
+
+````
+        demo-down.sh [flags]
+
+        Flags:
+          -c, --cluster : local : [local, aws, ???] selects the cluster yaml/json to use
+          -h, -?, --help :: print usage
+          -v, --version :: print script verion
+
+````
+
 * Locates the .kubeconfig in the kraken/kubernetes directory
 * Uses the information to construct the correct ````kubectl```` command.  e.g.:
 
@@ -58,6 +70,30 @@ There are 2 scripts: ````demo-run.sh```` and ````demo-down.sh````.
 * Removes all services
 * Resizes the Cassandra RC to Zero
 * Removes the Cassandra RC and Opscenter Pods
+
+#### ````demo-resize.sh````
+* Locates the Kubectl needed for Kraken
+* Usage:
+
+````
+        demo-resize.sh [flags]
+
+        Flags:
+          -c, --cluster : local : [local, aws, ???] selects the cluster yaml/json to use
+          -s, --size :required: new node size
+          -h, -?, --help :: print usage
+          -v, --version :: print script verion
+
+````
+
+* Locates the .kubeconfig in the kraken/kubernetes directory
+* Uses the information to construct the correct ````kubectl```` command.  e.g.:
+
+````
+        kubectl='/opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig='\''/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig'\'''
+````
+
+* Resizes the Cassandra RC to given --size value
 
 
 ### Sequence
