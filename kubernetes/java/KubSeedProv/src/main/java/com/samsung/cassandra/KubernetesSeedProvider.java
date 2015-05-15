@@ -26,17 +26,19 @@ public class KubernetesSeedProvider implements SeedProvider {
     // Only parse the values we want.
     //
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Address {
+    static class Address {
         public String IP;
     }
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Subset {
-        public Address[] addresses;
+    static class Subset {
+        //public Address[] addresses;
+        public List<Address> addresses;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     static class Endpoints {
-        public Subset[] subsets;
+        //public Subset[] subsets;
+        public List<Subset> subsets;
     }
     
     private static String getEnvOrDefault(String var, String def) {
@@ -83,17 +85,16 @@ public class KubernetesSeedProvider implements SeedProvider {
             ObjectMapper mapper = new ObjectMapper();
             Endpoints endpoints = mapper.readValue(url, Endpoints.class);
             if (endpoints != null) {
-                if (endpoints.subsets != null && endpoints.subsets.length > 0){
-                    if (endpoints.subsets[0].addresses != null){
-                        for (Address endpoint : endpoints.subsets[0].addresses){
-                            String ip = endpoint.IP;
-                            list.add(InetAddress.getByName(ip));
+                if (endpoints.subsets != null && !endpoints.subsets.isEmpty()){
+                    for (Subset subset : endpoints.subsets) {
+                        for (Address address : subset.addresses){
+                            list.add(InetAddress.getByName(address.IP));
                         }
                     }
                 }
             }
         } catch (IOException ex) {
-            logger.warn("Request to kubernetes apiserver failed");
+            logger.warn("Request to kubernetes apiserver failed "+ex);
         }
         if (list.size() == 0) {
             // If we got nothing, we might be the first instance, in that case
