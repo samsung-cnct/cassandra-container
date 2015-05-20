@@ -10,6 +10,6 @@ spec:
           port: 9042
         - name: thrift
           port: 9160
-    publicIPs: [ 10.1.1.103 ]
+    publicIPs: [ 10.1.102.103 ]
     selector:
         name: cassandra
