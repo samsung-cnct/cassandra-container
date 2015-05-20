@@ -5,6 +5,9 @@ init.sh.orig
 Dockerfile.*
 KubSeedProv-1.0-SNAPSHOT.jar
 KubSeedProv-1.1-SNAPSHOT.jar
+KubSeedProv-2.0-SNAPSHOT.jar
+KubSeedProv-2.1-SNAPSHOT.jar
+KubSeedProv-2.2-SNAPSHOT.jar
 Makefile
 README.md
 cassandra_kub_mln

@@ -257,9 +257,18 @@ echo "+++++ starting cassandra pods ++++++++++++++++++++++++++++"
 #
 # check if things are already running..and skip
 #
+# Find controller file for the given env (if possible)
+#
+CASSANDRA_CONTOLLER_BASE_NAME="cassandra-controller"
+CASSANDRA_CONTROLLER_YAML="$CASSANDRA_CONTOLLER_BASE_NAME-$CLUSTER_LOC.yaml"
+if [ ! -f "$CASSANDRA_CONTROLLER_YAML" ]; then
+    echo "WARNING $CASSANDRA_CONTROLLER_YAML not found.  Using $CASSANDRA_CONTOLLER_BASE_NAME.yaml instead."
+    CASSANDRA_CONTROLLER_YAML="$CASSANDRA_CONTOLLER_BASE_NAME.yaml"
+fi
+#
 # get the final number of replicas for later
 #
-FINAL_SIZE=`grep "replicas:" cassandra-controller.yaml | cut -d ':' -f2 | tr -d '[[:space:]]'`
+FINAL_SIZE=`grep "replicas:" $CASSANDRA_CONTROLLER_YAML | cut -d ':' -f2 | tr -d '[[:space:]]'`
 #
 # pipe the file in, so we can replace the replicas: xx with replicas: 1.
 # This does 2 things:
@@ -286,7 +295,7 @@ if [ $? -ne 0 ]; then
     #     2) Does not alter the original file in any way
     #
     #$kubectl_local create -f cassandra-controller.yaml
-    cat cassandra-controller.yaml | sed 's/replicas:[ 1234567890]*/replicas: 1/' | $kubectl_local create -f -
+    cat $CASSANDRA_CONTROLLER_YAML | sed 's/replicas:[ 1234567890]*/replicas: 1/' | $kubectl_local create -f -
     # TODO: this error may be bogus..
     if [ $? -ne 0 ]; then
         echo "Cassandra replication controller error"
@@ -444,10 +453,19 @@ else
 fi
 echo " "
 #
+# set name based on environment
+#
+OPSCENTER_POD_BASE_NAME="opscenter"
+OPSCENTER_POD_YAML="$OPSCENTER_POD_BASE_NAME-$CLUSTER_LOC.yaml"
+if [ ! -f "$OPSCENTER_POD_YAML" ]; then
+    echo "WARNING $OPSCENTER_POD_YAML not found.  Using $OPSCENTER_POD_BASE_NAME.yaml instead."
+    OPSCENTER_POD_YAML="$OPSCENTER_POD_BASE_NAME.yaml"
+fi
+#
 $kubectl_local get pods opscenter 2>/dev/null
 if [ $? -ne 0 ];then
     # start a new one
-    $kubectl_local create -f opscenter.yaml
+    $kubectl_local create -f $OPSCENTER_POD_YAML
     if [ $? -ne 0 ]; then
         echo "Opscenter pod error"
         . ./demo-down.sh --cluster $CLUSTER_LOC
