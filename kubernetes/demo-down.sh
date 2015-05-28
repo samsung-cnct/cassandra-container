@@ -86,13 +86,13 @@ if [ $? -ne 0 ];then
 else
     echo "found: $KRAKENDIR"
 fi
-KUBECONFIG=`find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC} -type f -name ".kubeconfig" -print | egrep '.*'`
-if [ $? -ne 0 ];then
-    echo "Could not find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC}/.kubeconfig"
-    exit 1
-else
-    echo "found: $KUBECONFIG"
-fi
+#KUBECONFIG=`find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC} -type f -name ".kubeconfig" -print | egrep '.*'`
+#if [ $? -ne 0 ];then
+#    echo "Could not find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC}/.kubeconfig"
+#    exit 1
+#else
+#    echo "found: $KUBECONFIG"
+#fi
 
 KUBECTL=`find /opt/kubernetes/platforms/darwin/amd64 -type f -name "kubectl" -print | egrep '.*'`
 if [ $? -ne 0 ];then
@@ -103,11 +103,12 @@ else
 fi
 
 #kubectl_local="/opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig=/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig"
-kubectl_local="${KUBECTL} --kubeconfig=${KUBECONFIG}"
+#kubectl_local="${KUBECTL} --kubeconfig=${KUBECONFIG}"
+kubectl_local="${KUBECTL} --cluster=${CLUSTER_LOC}"
 
 CMDTEST=`$kubectl_local version`   
 if [ $? -ne 0 ]; then
-    echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running? (Hint: vagrant status, vagrant up)"
+    echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running?"
     exit 1;
 else
     echo "kubectl present: $kubectl_local"
