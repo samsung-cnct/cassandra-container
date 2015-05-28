@@ -14,7 +14,7 @@ Running as standalone
 
 Just start the image normally
 
-    docker run -d mikeln/cassandra-mln
+    docker run -d mikeln/cassandra_mln
 
 The necessary ports are exposed, so you can interact with the docker image as you normally do.
 
@@ -27,8 +27,8 @@ Simply use the builtin `docker` provisioner to pull and start the image.
 
 ````ruby
 config.vm.provision "docker" do |d|
-    d.pull_images "mikeln/cassandra-mln"
-    d.run "cass", image: "mikeln/cassandra-mln"
+    d.pull_images "mikeln/cassandra_mln"
+    d.run "cass", image: "mikeln/cassandra_mln"
 end
 ````
 
@@ -51,12 +51,12 @@ Start a first image, and then link them all up.
 
 ##### Start the first image
 
-    docker run -d -name cass0 mikeln/cassandra-mln
+    docker run -d -name cass0 mikeln/cassandra_mln
 
 ##### Link the cluster
 
-    docker run -d -name cass1 -link cass0:cass0 mikeln/cassandra-mln
-    docker run -d -name cass2 -link cass0:cass0 -link cass1:cass1 mikeln/cassandra-mln
+    docker run -d -name cass1 -link cass0:cass0 mikeln/cassandra_mln
+    docker run -d -name cass2 -link cass0:cass0 -link cass1:cass1 mikeln/cassandra_mln
 
 
 ### Vagrant
@@ -67,15 +67,15 @@ We'll do the same as above, but using the `docker` provisioner.
 config.vm.provision "docker" do |d|
     d.run "seed", auto_assign_name: false,
       args: "--name cass0",
-      image: "mikeln/cassandra-mln"
+      image: "mikeln/cassandra_mln"
 
     d.run "first", auto_assign_name: false,
       args: "--name cass1 --link cass0:cass0",
-      image: "mikeln/cassandra-mln"
+      image: "mikeln/cassandra_mln"
 
     d.run "second", auto_assign_name: false,
       args: "--name cass2 --link cass0:cass0 --link cass1:cass1",
-      image: "mikeln/cassandra-mln"
+      image: "mikeln/cassandra_mln"
 end
 ````
 
@@ -88,11 +88,11 @@ Usage Guide
 
 Get image ID for `cassandra-docker` on your machine
 
-    docker images | grep "mikeln/cassandra-mln" | sed -e "s/\s\+/ /g" | cut -d' ' -f3
+    docker images | grep "mikeln/cassandra_mln" | sed -e "s/\s\+/ /g" | cut -d' ' -f3
 
 __This is a very convenient export: the image ID__
 
-    export CASSDOCK_ID=`docker images | grep "mikeln/cassandra-mln" | sed -e "s/\s\+/ /g" | cut -d' ' -f3`
+    export CASSDOCK_ID=`docker images | grep "mikeln/cassandra_mln" | sed -e "s/\s\+/ /g" | cut -d' ' -f3`
 
 List the IPs of containers running `cassandra-docker`
 
