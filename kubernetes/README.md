@@ -26,7 +26,7 @@ There are 2 scripts: ````demo-run.sh```` and ````demo-down.sh````.
 * Uses the information to construct the correct ````kubectl```` command.  e.g.:
 
 ````
-        kubectl='/opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig='\''/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig'\'''
+        kubectl='/opt/kubernetes/platforms/darwin/amd64/kubectl --cluster=local'
 ````
 
 * Checks if the Opscenter Service running and starts it.
@@ -64,7 +64,7 @@ There are 2 scripts: ````demo-run.sh```` and ````demo-down.sh````.
 * Uses the information to construct the correct ````kubectl```` command.  e.g.:
 
 ````
-        kubectl='/opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig='\''/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig'\'''
+        kubectl='/opt/kubernetes/platforms/darwin/amd64/kubectl --cluster=local'
 ````
 
 * Removes all services
@@ -90,7 +90,7 @@ There are 2 scripts: ````demo-run.sh```` and ````demo-down.sh````.
 * Uses the information to construct the correct ````kubectl```` command.  e.g.:
 
 ````
-        kubectl='/opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig='\''/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig'\'''
+        kubectl='/opt/kubernetes/platforms/darwin/amd64/kubectl --cluster=local'
 ````
 
 * Resizes the Cassandra RC to given --size value
@@ -122,11 +122,12 @@ There are 2 scripts: ````demo-run.sh```` and ````demo-down.sh````.
            name: opscenter
 ````
 * kub create -f cassandra-opscenter-service.yaml
-* kub create -f opscenter.yaml
 * kub create -f cassandra-service.yaml
 * edit cassandra-controller.yaml and set the number of replicas you want
 * kub create -f cassandra-controller.yaml
 * wait until all the pods are running
+* kub create -f opscenter.yaml
+* wait until opscenter is running
 * (painful part of the process here) determine the node IP where the opscenter pod is running.
 ````
       l2067532491-mn:kubernetes mikel_nelson$ kub get pods
@@ -148,6 +149,7 @@ There are 2 scripts: ````demo-run.sh```` and ````demo-down.sh````.
 
 ### Debug
 * kub describe pods <pod ID or name>
+* kub log <pod ID or name>
 * vagrant ssh minion-<x>
 	* sudo docker ps
 	* sudo docker logs <container>

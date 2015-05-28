@@ -38,10 +38,14 @@ echo "  !!! NOTE  !!!"
 echo "  This script uses our kraken project assumptions:"
 echo "     kubectl will be located at (for OS-X):"
 echo "       /opt/kubernetes/platforms/darwin/amd64/kubectl"
-echo "    .kubeconfig is from our kraken project"
 echo " "
 echo "  Also, your Kraken Kubernetes Cluster Must be"
 echo "  up and Running.  "
+echo " "
+echo "  And you must have your ~/.kube/config for you cluster set up.  e.g."
+echo " "
+echo "  local: kubectl config set-cluster local --server=http://172.16.1.102:8080 --api-version=v1beta3"
+echo "  aws:   kubectl config set-cluster aws --server=http:////52.25.218.223:8080 --api-version=v1beta3"
 echo "=================================================="
 #----------------------
 # start the services first...this is so the ENV vars are available to the pods
@@ -104,13 +108,16 @@ if [ $? -ne 0 ];then
 else
     echo "found: $KRAKENDIR"
 fi
-KUBECONFIG=`find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC} -type f -name ".kubeconfig" -print | egrep '.*'`
-if [ $? -ne 0 ];then
-    echo "Could not find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC}/.kubeconfig"
-    exit 1
-else
-    echo "found: $KUBECONFIG"
-fi
+#
+# note this has changed.  it assumes that you correctly set your env after your cluster came up
+#
+#KUBECONFIG=`find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC} -type f -name ".kubeconfig" -print | egrep '.*'`
+#if [ $? -ne 0 ];then
+#    echo "Could not find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC}/.kubeconfig"
+#    exit 1
+#else
+#    echo "found: $KUBECONFIG"
+#fi
 
 KUBECTL=`find /opt/kubernetes/platforms/darwin/amd64 -type f -name "kubectl" -print | egrep '.*'`
 if [ $? -ne 0 ];then
@@ -119,23 +126,23 @@ if [ $? -ne 0 ];then
 else
     echo "found: $KUBECTL"
 fi
-
 #kubectl_local="/opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig=/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig"
-kubectl_local="${KUBECTL} --kubeconfig=${KUBECONFIG}"
+#kubectl_local="${KUBECTL} --kubeconfig=${KUBECONFIG}"
+kubectl_local="${KUBECTL} --cluster=${CLUSTER_LOC}"
 
 CMDTEST=`$kubectl_local version`   
 if [ $? -ne 0 ]; then
-    echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running? (Hint: vagrant status, vagrant up)"
+    echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running?"
     exit 1;
 else
     echo "kubectl present: $kubectl_local"
 fi
 echo " "
-# get minion IPs for later...also checks if cluster is up
+# get minion IPs for later...also checks if cluster is up...and if your .kube/config is defined
 echo "+++++ finding Kubernetes Nodes services ++++++++++++++++++++++++++++"
 NODEIPS=`$kubectl_local get nodes --output=template --template="{{range $.items}}{{.metadata.name}}${CRLF}{{end}}" 2>/dev/null`
 if [ $? -ne 0 ]; then
-    echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running? (Hint: vagrant status, vagrant up)"
+    echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running? Did you set the correct values in your ~/.kube/config file for ${CLUSTER_LOC}?"
     exit 1;
 else
     #
