@@ -22,7 +22,23 @@ There are 2 scripts: ````demo-run.sh```` and ````demo-down.sh````.
 
 ````
 
-* Locates the .kubeconfig in the kraken/kubernetes directory
+* Uses ~/.kube/config. Requires an entry exists for the desired cluster. Example for local:
+
+````
+        apiVersion: v1
+        clusters:
+        - cluster:
+            api-version: v1beta3
+            server: http://172.16.1.102:8080
+          name: local
+        contexts: []
+        current-context: ""
+        kind: Config
+        preferences: {}
+        users: []
+
+````
+
 * Uses the information to construct the correct ````kubectl```` command.  e.g.:
 
 ````
