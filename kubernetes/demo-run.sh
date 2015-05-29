@@ -97,27 +97,17 @@ echo "Locating Kraken Project kubectl and .kubeconfig..."
 SCRIPTPATH="$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )"
 cd ${SCRIPTPATH}
 DEVBASE=${SCRIPTPATH%/cassandra-container/kubernetes}
-echo "DEVBASE ${DEVBASE}"
+echo "DEVBASE: ${DEVBASE}"
 #
 # locate projects...
 #
-KRAKENDIR=`find ${DEVBASE} -type d -name "kraken" -print | egrep '.*'`
+KRAKENDIR=$(find ${DEVBASE} -type d -name "kraken" -print | egrep '.*')
 if [ $? -ne 0 ];then
     echo "Could not find the Kraken project."
     exit 1
 else
     echo "found: $KRAKENDIR"
 fi
-#
-# note this has changed.  it assumes that you correctly set your env after your cluster came up
-#
-#KUBECONFIG=`find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC} -type f -name ".kubeconfig" -print | egrep '.*'`
-#if [ $? -ne 0 ];then
-#    echo "Could not find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC}/.kubeconfig"
-#    exit 1
-#else
-#    echo "found: $KUBECONFIG"
-#fi
 
 # search for a version of kubectl that is at the version we expect
 opt_kubectl=$(find /opt/kubernetes/platforms/darwin/amd64 -type f -name "kubectl" -print 2>/dev/null | egrep '.*')
@@ -134,11 +124,13 @@ else
   echo "found kubectl at: ${KUBECTL}"
 fi
 
-#kubectl_local="/opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig=/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig"
-#kubectl_local="${KUBECTL} --kubeconfig=${KUBECONFIG}"
+# XXX: kubectl doesn't seem to provide an out-of-the-box way to ask if a cluster
+#      has already been set so we just assume it's already been configured, eg:
+#
+#      kubectl config set-cluster local --server=http://172.16.1.102:8080 --api-version=v1beta3
 kubectl_local="${KUBECTL} --cluster=${CLUSTER_LOC}"
 
-CMDTEST=`$kubectl_local version`   
+CMDTEST=$($kubectl_local version)
 if [ $? -ne 0 ]; then
     echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running?"
     exit 1;
@@ -148,7 +140,7 @@ fi
 echo " "
 # get minion IPs for later...also checks if cluster is up...and if your .kube/config is defined
 echo "+++++ finding Kubernetes Nodes services ++++++++++++++++++++++++++++"
-NODEIPS=`$kubectl_local get nodes --output=template --template="{{range $.items}}{{.metadata.name}}${CRLF}{{end}}" 2>/dev/null`
+NODEIPS=$($kubectl_local get nodes --output=template --template="{{range $.items}}{{.metadata.name}}${CRLF}{{end}}" 2>/dev/null)
 if [ $? -ne 0 ]; then
     echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running? Did you set the correct values in your ~/.kube/config file for ${CLUSTER_LOC}?"
     exit 1;
@@ -283,7 +275,7 @@ fi
 #
 # get the final number of replicas for later
 #
-FINAL_SIZE=`grep "replicas:" $CASSANDRA_CONTROLLER_YAML | cut -d ':' -f2 | tr -d '[[:space:]]'`
+FINAL_SIZE=$(grep "replicas:" $CASSANDRA_CONTROLLER_YAML | cut -d ':' -f2 | tr -d '[[:space:]]')
 #
 # pipe the file in, so we can replace the replicas: xx with replicas: 1.
 # This does 2 things:
@@ -329,7 +321,7 @@ $kubectl_local get rc
 echo " "
 #
 # see how many are running...if less than desired start the otheres
-CUR_SIZE=`$kubectl_local get rc  cassandra --output=template --template="{{$.status.replicas}}" 2>/dev/null`
+CUR_SIZE=$($kubectl_local get rc  cassandra --output=template --template="{{$.status.replicas}}" 2>/dev/null)
 if [ $? -ne 0 ]; then
     echo "Error getting number of Cassandra Pods Replicated"
     . ./demo-down.sh --cluster $CLUSTER_LOC
@@ -349,7 +341,7 @@ else
         RUNSTAT=0
         while [ $NUMTRIES -ne 0 ] && [ $COMBSTAT -ne 0 ]; do
             let REMTIME=NUMTRIES*5
-            LASTSTATUS=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.phase}}${CRLF}{{end}}" 2>/dev/null`
+            LASTSTATUS=$($kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.phase}}${CRLF}{{end}}" 2>/dev/null)
             LASTRET=$?
             if [ $? -ne 0 ]; then
                 echo -n "Cassandra get seed pods not problem $REMTIME                                         $CR"
@@ -422,7 +414,7 @@ else
         RUNSTAT=0
         while [ $NUMTRIES -ne 0 ] && [ $COMBSTAT -ne 0 ]; do
             let REMTIME=NUMTRIES*5
-            LASTSTATUS=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.phase}}${CRLF}{{end}}" 2>/dev/null`
+            LASTSTATUS=$($kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.phase}}${CRLF}{{end}}" 2>/dev/null)
             LASTRET=$?
             if [ $? -ne 0 ]; then
                 echo -n "Cassandra get pods not problem $REMTIME                                         $CR"
@@ -507,7 +499,7 @@ LASTRET=1
 LASTSTATUS="unknown"
 while [ $NUMTRIES -ne 0 ] && [ "$LASTSTATUS" != "Running" ]; do
     let REMTIME=NUMTRIES*5
-    LASTSTATUS=`$kubectl_local get pods opscenter --output=template --template={{.status.phase}} 2>/dev/null`
+    LASTSTATUS=$($kubectl_local get pods opscenter --output=template --template={{.status.phase}} 2>/dev/null)
     LASTRET=$?
     if [ $? -ne 0 ]; then
         echo -n "Opscenter pod not found $REMTIME"
@@ -553,16 +545,12 @@ echo " "
 # NO ERROR CHECKING HERE...this is ALL just Informational for the user
 #
 #v1beta3
-SERVICEIP=`$kubectl_local get services opscenter --output=template --template="{{.spec.portalIP}}" 2>/dev/null`
-#SERVICEIP=`$kubectl_local get services opscenter --output=template --template="{{.portalIP}}:{{.port}}" 2>/dev/null`
-#v1beta3
-PUBLICPORT=`$kubectl_local get services opscenter --output=template --template="{{range $.spec.ports}}{{.port}}${CRLF}{{end}}" 2>/dev/null`
-#PUBLICPORT=`$kubectl_local get services opscenter --output=template --template="{{.port}}" 2>/dev/null`
-#v1beta3
-PUBLICIP=`$kubectl_local get services opscenter --output=template --template="{{.spec.publicIPs}}" 2>/dev/null`
-#PUBLICIP=`$kubectl_local get services opscenter --output=template --template="{{.publicIPs}}" 2>/dev/null`
+SERVICEIP=$($kubectl_local get services opscenter --output=template --template="{{.spec.portalIP}}" 2>/dev/null)
+PUBLICPORT=$($kubectl_local get services opscenter --output=template --template="{{range $.spec.ports}}{{.port}}${CRLF}{{end}}" 2>/dev/null)
+PUBLICIP=$($kubectl_local get services opscenter --output=template --template="{{.spec.publicIPs}}" 2>/dev/null)
+
 # remove [] if present
-PUBLICIPS=`echo $PUBLICIP | tr -d '[]' | tr , '\n'`
+PUBLICIPS=$(echo $PUBLICIP | tr -d '[]' | tr , '\n')
 #
 # NEED TO VALIDATE the PUBLICIPS against the NODEIPS
 #
@@ -597,9 +585,8 @@ fi
 
 # remove trailing comma
 # v1beta3
-PODIP=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.podIP}}, {{end}}" 2>/dev/null`
-#PODIP=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.currentState.podIP}}, {{end}}" 2>/dev/null`
-PODIPS=`echo $PODIP | sed 's/,$//' | tr , '\n'`
+PODIP=$($kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.podIP}}, {{end}}" 2>/dev/null)
+PODIPS=$(echo $PODIP | sed 's/,$//' | tr , '\n')
 
 echo "===================================================================="
 echo " "
