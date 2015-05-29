@@ -119,13 +119,21 @@ fi
 #    echo "found: $KUBECONFIG"
 #fi
 
-KUBECTL=`find /opt/kubernetes/platforms/darwin/amd64 -type f -name "kubectl" -print | egrep '.*'`
-if [ $? -ne 0 ];then
-    echo "Could not find kubectl."
-    exit 1
+# search for a version of kubectl that is at the version we expect
+opt_kubectl=$(find /opt/kubernetes/platforms/darwin/amd64 -type f -name "kubectl" -print 2>/dev/null | egrep '.*')
+KUBECTL=notfound
+for guess in ${opt_kubectl} kubectl; do
+  if ${guess} version --client 2>/dev/null | grep -q 'Minor:"17+"'; then
+    KUBECTL=${guess}
+  fi
+done
+if [ "${KUBECTL}" = "notfound" ]; then
+  echo "ERROR: Could not find correct version of kubectl" >&2
+  exit 1
 else
-    echo "found: $KUBECTL"
+  echo "found kubectl at: ${KUBECTL}"
 fi
+
 #kubectl_local="/opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig=/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig"
 #kubectl_local="${KUBECTL} --kubeconfig=${KUBECONFIG}"
 kubectl_local="${KUBECTL} --cluster=${CLUSTER_LOC}"
