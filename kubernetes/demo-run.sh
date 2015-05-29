@@ -27,6 +27,11 @@ function version
 CRLF=$'\n'
 CR=$'\r'
 unset CDPATH
+
+# XXX: this won't work if the last component is a symlink
+my_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+. ${my_dir}/utils.sh
+
 #
 echo " "
 echo "=================================================="
@@ -109,20 +114,11 @@ else
     echo "found: $KRAKENDIR"
 fi
 
-# search for a version of kubectl that is at the version we expect
-opt_kubectl=$(find /opt/kubernetes/platforms/darwin/amd64 -type f -name "kubectl" -print 2>/dev/null | egrep '.*')
-KUBECTL=notfound
-for guess in ${opt_kubectl} kubectl; do
-  if ${guess} version --client 2>/dev/null | grep -q 'Minor:"17+"'; then
-    KUBECTL=${guess}
-  fi
-done
-if [ "${KUBECTL}" = "notfound" ]; then
-  echo "ERROR: Could not find correct version of kubectl" >&2
+KUBECTL=$(locate_kubectl)
+if [ $? -ne 0 ]; then
   exit 1
-else
-  echo "found kubectl at: ${KUBECTL}"
 fi
+echo "found kubectl at: ${KUBECTL}"
 
 # XXX: kubectl doesn't seem to provide an out-of-the-box way to ask if a cluster
 #      has already been set so we just assume it's already been configured, eg:
