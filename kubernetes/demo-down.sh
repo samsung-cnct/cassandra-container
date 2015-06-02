@@ -3,8 +3,7 @@
 # Script to stop all the pieces of the cassandra cluster demo with opscenter
 #
 #-------
-# some best practice stuff
-unset CDPATH
+
 VERSION="1.0"
 function usage
 {
@@ -23,6 +22,14 @@ function version
 {
     echo "demo-down.sh version $VERSION"
 }
+
+# some best practice stuff
+unset CDPATH
+
+# XXX: this won't work if the last component is a symlink
+my_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+. ${my_dir}/utils.sh
+
 #
 echo " "
 echo "=================================================="
@@ -86,24 +93,17 @@ if [ $? -ne 0 ];then
 else
     echo "found: $KRAKENDIR"
 fi
-#KUBECONFIG=`find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC} -type f -name ".kubeconfig" -print | egrep '.*'`
-#if [ $? -ne 0 ];then
-#    echo "Could not find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC}/.kubeconfig"
-#    exit 1
-#else
-#    echo "found: $KUBECONFIG"
-#fi
 
-KUBECTL=`find /opt/kubernetes/platforms/darwin/amd64 -type f -name "kubectl" -print | egrep '.*'`
-if [ $? -ne 0 ];then
-    echo "Could not find kubectl."
-    exit 1
-else
-    echo "found: $KUBECTL"
+KUBECTL=$(locate_kubectl)
+if [ $? -ne 0 ]; then
+  exit 1
 fi
+echo "found kubectl at: ${KUBECTL}"
 
-#kubectl_local="/opt/kubernetes/platforms/darwin/amd64/kubectl --kubeconfig=/Users/mikel_nelson/dev/cloud/kraken/kubernetes/.kubeconfig"
-#kubectl_local="${KUBECTL} --kubeconfig=${KUBECONFIG}"
+# XXX: kubectl doesn't seem to provide an out-of-the-box way to ask if a cluster
+#      has already been set so we just assume it's already been configured, eg:
+#
+#      kubectl config set-cluster local --server=http://172.16.1.102:8080 --api-version=v1beta3
 kubectl_local="${KUBECTL} --cluster=${CLUSTER_LOC}"
 
 CMDTEST=`$kubectl_local version`   

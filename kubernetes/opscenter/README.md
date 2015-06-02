@@ -8,6 +8,6 @@ Must run as --name opscenter
 
 e.g.
 
-docker run -d --name opscenter -p 8888:8888 mikeln/opscenter-mln:v0
+docker run -d --name opscenter -p 8888:8888 mikeln/opscenter_mln:v0
 
 
