@@ -2,6 +2,7 @@
 .gitmodules
 .gitignore
 init.sh.orig
+init.sh.jq
 Dockerfile.*
 KubSeedProv-1.0-SNAPSHOT.jar
 KubSeedProv-1.1-SNAPSHOT.jar

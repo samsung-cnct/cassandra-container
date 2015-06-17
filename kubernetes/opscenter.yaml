@@ -36,3 +36,5 @@ spec:
             value: 100M
           - name: KUBERNETES_API_PROTOCOL
             value: http
+    nodeSelector:
+        type: uinode
