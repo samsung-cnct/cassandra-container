@@ -7,7 +7,7 @@ metadata:
 spec:
     containers:
       - name: cassandra
-        image: quay.io/mikeln/cassandra_kub_mln:v17slim
+        image: quay.io/mikeln/cassandra_kub_mln:v20slim
         ports:
           - name: cql
             containerPort: 9042

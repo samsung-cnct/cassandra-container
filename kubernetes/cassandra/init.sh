@@ -10,20 +10,50 @@ perl -pi -e "s/%%ip%%/$IP/g" $CONFIG/cassandra.yaml
 #
 chown cassandra:cassandra $CONFIG/cassandra.yaml
 
-# Start Monitor Agent
 #
-# NOTE: opscenter MUST be running first so we can pull the IP of the container from the env vars...
+# set config file for agent
 #
-# NOTE: assumes opcenter container is named opscenter
-# TODO: make more generic based on ports alone
-#
-# NOTE: last sed creates a CSV list.. should never be needed here
-#
-STOMP=`env | grep OPSCENTER_PORT_61620_TCP_ADDR | sed 's/OPSCENTER_PORT_61620_TCP_ADDR=//g' | sed -e :a -e N -e 's/\n/,/' -e ta`
 DCONFIG=/var/lib/datastax-agent/conf
-if [ -n "$STOMP" ]; then
-    echo "stomp_interface: $STOMP" | sudo tee -a $DCONFIG/address.yaml
+# Start Monitor Agent
+#-------------------------------------
+# set stomp address if possible...
+# 
+# Use the endpoint query, which should always be current vs looking for env vars set.
+# e.g.  this is deprectaed here:
+#STOMP=`env | grep OPSCENTER_PORT_61620_TCP_ADDR | sed 's/OPSCENTER_PORT_61620_TCP_ADDR=//g' | sed -e :a -e N -e 's/\n/,/' -e ta`
+#
+# Get the kubernetes-ro http ip:port
+# query for opscenter endpoint to see if it is already running
+# set the stomp address is it is running
+#
+# Note: we need a good json parser (in bash)...install it here at run (vs in the image...for now).
+which jq
+if [ $? -ne 0 ]; then
+    echo "WARNING jq not accessble,  Unable to set stomp address without a json parser"
+else
+    #
+    # opscenter POD ... MUST be named opscenter
+    #
+    KUBRO="http://${KUBERNETES_RO_SERVICE_HOST}:${KUBERNETES_RO_SERVICE_PORT}/api/v1beta3/namespaces/default/endpoints/opscenter"
+    OPSRET=$(curl -s -L ${KUBRO})
+    if [ $? -ne 0 ];then
+        echo "ERROR with ${KUBBRO}.  Stomp address not set"
+    else
+        #
+        # parse for enpoint address...use first one (there should NEVER be more than one..but...)
+        #
+        STOMPIP=$( echo ${OPSRET} | jq '.subsets[0].addresses[0].IP' | tr -d '"' )
+        if [ -z $STOMPIP ] || [ $STOMPIP == "null" ]; then
+            echo "WARN No Opscenter IP found: ${STOMPIP}"
+        else
+            echo "INFO STOMP IP Found: ${STOMPIP}"
+            echo "stomp_interface: $STOMPIP" | sudo tee -a $DCONFIG/address.yaml
+        fi
+    fi
 fi
+#
+# set the rest of the information
+#
 echo "local_interface: $IP" | sudo tee -a $DCONFIG/address.yaml
 echo "agent_rpc_interface: $IP" | sudo tee -a $DCONFIG/address.yaml
 echo "jmx_host: $IP" | sudo tee -a $DCONFIG/address.yaml
@@ -49,7 +79,7 @@ env | sort
 #
 ls -l /
 
-echo "Starting Datastax Agent... stomp: $STOMP"
+echo "Starting Datastax Agent... stomp: $STOMPIP"
 sudo service datastax-agent start
 
 # Start Cassandra

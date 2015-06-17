@@ -2,12 +2,13 @@
 
 # look for a specific client version of kubectl
 function locate_kubectl() {
-  local client_version_regex=${1:-"Minor:\"17+\""}
+  local client_version_regex=${1:-"Major:\"0\"\, Minor:\"18\""}
 
+  local which_kubectl=$(which kubectl)
   local opt_kubectl=$(find /opt/kubernetes/platforms/darwin/amd64 -type f -name "kubectl" -print 2>/dev/null | egrep '.*')
   local result='notfound'
 
-  for guess in ${opt_kubectl} kubectl; do
+  for guess in ${opt_kubectl} ${which_kubectl}; do
     if ${guess} version --client 2>/dev/null | grep -q "${client_version_regex}"; then
       result=${guess}
     fi

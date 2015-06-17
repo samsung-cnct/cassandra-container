@@ -42,6 +42,7 @@ echo "=================================================="
 echo "  !!! NOTE  !!!"
 echo "  This script uses our kraken project assumptions:"
 echo "     kubectl will be located at (for OS-X):"
+echo "       in the user's PATH or at"
 echo "       /opt/kubernetes/platforms/darwin/amd64/kubectl"
 echo " "
 echo "  Also, your Kraken Kubernetes Cluster Must be"
@@ -137,6 +138,7 @@ echo " "
 # get minion IPs for later...also checks if cluster is up...and if your .kube/config is defined
 echo "+++++ finding Kubernetes Nodes services ++++++++++++++++++++++++++++"
 NODEIPS=$($kubectl_local get nodes --output=template --template="{{range $.items}}{{.metadata.name}}${CRLF}{{end}}" 2>/dev/null)
+FIRSTIP=""
 if [ $? -ne 0 ]; then
     echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running? Did you set the correct values in your ~/.kube/config file for ${CLUSTER_LOC}?"
     exit 1;
@@ -147,8 +149,16 @@ else
     echo "Kubernetes minions (nodes) IP(s):"
     for ip in $NODEIPS;do
         echo "   $ip "
+        if [ "$FIRSTIP" == "" ]; then
+            FIRSTIP=$ip
+        fi
     done
 fi
+echo " "
+echo "======== labeling nodes ====================================="
+# ignore any errors.. label with work if not already there, and error if already there.
+echo "Labelling: $FIRSTIP"
+$( $kubectl_local label nodes $FIRSTIP type=uinode )
 echo " "
 echo "+++++ starting cassandra services ++++++++++++++++++++++++++++"
 #
