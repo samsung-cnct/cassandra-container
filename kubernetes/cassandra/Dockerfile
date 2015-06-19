@@ -1,0 +1,58 @@
+##
+##    Cassandra (kubernetes)
+##
+##
+FROM debian:wheezy
+MAINTAINER Mikel Nelson <mikel.n@samsung.com>
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886 \
+    && DEBIAN_FRONTEND=noninteractive apt-get update -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    curl \
+    wget \
+    sudo \
+    vim-tiny \
+# Add PPA for the necessary JDK
+    && wget --no-check-certificate -O /tmp/server-jre-7u80-linux-x64.tar.gz --header "Cookie: oraclelicense=a" http://download.oracle.com/otn-pub/java/jdk/7u80-b15/server-jre-7u80-linux-x64.tar.gz \
+    && echo "366a145fb3a185264b51555546ce2f87  /tmp/server-jre-7u80-linux-x64.tar.gz" | md5sum -c >/dev/null 2>&1 || echo "ERROR: Java Download MD5SUM Mismatch" \
+    && tar xzf /tmp/server-jre-7u80-linux-x64.tar.gz \
+    && mkdir -p /usr/lib/jvm/java-7-oracle  \
+    && mv jdk1.7.0_80/ /usr/lib/jvm/java-7-oracle/server-jre \
+    && chown root:root -R /usr/lib/jvm/java-7-oracle \
+    && update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-7-oracle/server-jre/bin/java 1 \
+    && update-alternatives --set java /usr/lib/jvm/java-7-oracle/server-jre/bin/java \
+    && rm -rf jdk1.7.0_80 && rm /tmp/server-jre-7u80-linux-x64.tar.gz \
+# cassandra next
+    && echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/datastax.sources.list \
+    && curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add - \
+    && DEBIAN_FRONTEND=noninteractive apt-get update -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    dsc20=2.0.11-1 \
+    cassandra=2.0.11  \
+    datastax-agent=5.1.1 \
+    sysstat \
+    procps \
+    && DEBIAN_FRONTEND=noninteractive apt-get remove -y --purge wget \
+    && DEBIAN_FRONTEND=noninteractive apt-get autoremove -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
+# install jq for json parsing...no apt pkg for this yet
+#  (need this here, and not in the init.sh so it can stand alone)
+#
+RUN curl -v -O http://stedolan.github.io/jq/download/linux64/jq \
+    && chmod +x ./jq \
+    && sudo mv ./jq /usr/bin
+#
+# USE OUR VERSION OF cassandra.yaml... it has the correct java seed impl and the needed perl markers for IP substitution
+COPY cassandra.yaml /etc/cassandra/cassandra.yaml
+COPY KubSeedProv-2.3-SNAPSHOT.jar /kubernetes-cassandra.jar
+COPY init.sh /usr/local/bin/cass-dock
+COPY shutdown.sh /usr/local/bin/cass-stop
+#
+RUN chmod 644 /kubernetes-cassandra.jar \
+    && chmod 755 /usr/local/bin/cass-dock \
+    && chmod 755 /usr/local/bin/cass-stop
+
+EXPOSE 7199 7000 7001 9160 9042
+EXPOSE 61620 61621 50031
+USER root
+CMD cass-dock
