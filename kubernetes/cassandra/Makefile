@@ -5,7 +5,7 @@
 #
 # 3/12/2015 mln
 #
-VERSION := v20slim
+VERSION := v21slim
 #
 # do some repo evals... want everyone to use their own, unless building for the team
 #
@@ -14,7 +14,7 @@ DOCKER_REPO ?= $(DEFAULT_REPO)
 REPO := $(DOCKER_REPO)
 #
 #
-DOCKER_IMAGE := cassandra_kub_mln
+DOCKER_IMAGE := cassandra_kub
 
 repo-warning:
 	@if  [ $(DOCKER_REPO) =  $(DEFAULT_REPO) ]; then \
