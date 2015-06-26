@@ -102,21 +102,6 @@ trap "echo ' ';echo ' ';echo 'SIGNAL CAUGHT, SCRIPT TERMINATING, cleaning up'; .
 # check to see if kubectl has been configured
 #
 echo " "
-echo "Locating Kraken Project kubectl and .kubeconfig..."
-SCRIPTPATH="$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )"
-cd ${SCRIPTPATH}
-DEVBASE=${SCRIPTPATH%/cassandra-container/kubernetes}
-echo "DEVBASE: ${DEVBASE}"
-#
-# locate projects...
-#
-KRAKENDIR=$(find ${DEVBASE} -type d -name "kraken" -print | egrep '.*')
-if [ $? -ne 0 ];then
-    echo "Could not find the Kraken project."
-    exit 1
-else
-    echo "found: $KRAKENDIR"
-fi
 
 KUBECTL=$(locate_kubectl)
 if [ $? -ne 0 ]; then
@@ -141,44 +126,14 @@ echo " "
 # get minion IPs for later...also checks if cluster is up...and if your .kube/config is defined
 echo "+++++ finding Kubernetes Nodes services ++++++++++++++++++++++++++++"
 NODEIPS=$($kubectl_local get nodes --output=template --template="{{range $.items}}{{.metadata.name}}${CRLF}{{end}}" 2>/dev/null)
-#FIRSTIP=""
 if [ $? -ne 0 ]; then
     echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running? Did you set the correct values in your ~/.kube/config file for ${CLUSTER_LOC}?"
     exit 1;
-#else
-#    #
-#    # TODO: should probably validate that the status id Ready for the minions.  low level concern 
-#    #
-#    echo "Kubernetes minions (nodes) IP(s):"
-#    for ip in $NODEIPS;do
-#        echo "   $ip "
-#        if [ "$FIRSTIP" == "" ]; then
-#            FIRSTIP=$ip
-#        fi
-#    done
 fi
 echo " "
 echo "======== labeling nodes ====================================="
-# ignore any errors.. label with work if not already there, and error if already there.
-#
-# DEMO>>>>>>>>>> fixed labelling!!!d
-#
-#  172.16.16.16 opscenter
-#
-#  172.16.16.40-49 cassandra
-#
-OPSCENTER_NODE="172.16.16.16"
-echo "Labelling: $OPSCENTER_NODE"
-$( $kubectl_local label nodes $OPSCENTER_NODE type=uinode )
-
-CLABEL="type=cassandra"
-CASSANADRA_NODES=("172.16.16.40" "172.16.16.41" "172.16.16.42" "172.16.16.43" "172.16.16.44" "172.16.16.45" "172.16.16.46" "172.16.16.47" "172.16.16.48" "172.16.16.49" )
-for CNODE in ${CASSANADRA_NODES[@]}; do
-  echo "Labelling $CNODE with $CLABEL"
-  $( $kubectl_local label nodes $CNODE $CLABEL )
-done
-
-
+echo "  NODES NEED TO BE PRELABELLED! Run nuc-label.sh"
+echo "======== labeling nodes ====================================="
 echo " "
 echo "+++++ starting cassandra services ++++++++++++++++++++++++++++"
 #
