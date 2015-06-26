@@ -133,12 +133,14 @@ echo "======== labeling nodes ====================================="
 #
 #  172.16.16.40-49 cassandra
 #
-OLABEL="type=uinode"
+#OLABEL="type=uinode"
+OLABEL="region=zone1"
 OPSCENTER_NODE="172.16.16.16"
 echo "Labelling: $OPSCENTER_NODE with $OLABEL"
 $kubectl_local label nodes $OPSCENTER_NODE $OLABEL
 
-CLABEL="type=cassandra"
+#CLABEL="type=cassandra"
+CLABEL="region=zone2"
 CASSANADRA_NODES=("172.16.16.40" "172.16.16.41" "172.16.16.42" "172.16.16.43" "172.16.16.44" "172.16.16.45" "172.16.16.46" "172.16.16.47" "172.16.16.48" "172.16.16.49" )
 for CNODE in ${CASSANADRA_NODES[@]}; do
   echo "Labelling $CNODE with $CLABEL"

@@ -37,4 +37,4 @@ spec:
           - name: KUBERNETES_API_PROTOCOL
             value: http
     nodeSelector:
-        type: uinode
+        region: zone1

@@ -43,4 +43,4 @@ spec:
           - name: data
             emptyDir: {}
         nodeSelector:
-            type: cassandra
+            region: zone2
