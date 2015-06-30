@@ -1,0 +1,40 @@
+apiVersion: v1beta3
+kind: Pod
+metadata:
+    labels:
+        name: opscenter
+    name: opscenter
+spec:
+    containers:
+      - name: opscenter
+        image: 172.16.16.15:5000/opscenter_kub_mln:v4slim
+        limits:
+            cpu: 1
+        ports:
+          - name: web 
+            containerPort: 8888
+          - name: cql
+            containerPort: 9042
+          - name: thrift
+            containerPort: 9160
+          - name: jmx
+            containerPort: 7199
+          - name: huh
+            containerPort: 7000
+          - name: huh-ssl
+            containerPort: 7001
+          - name: agent
+            containerPort: 61620
+          - name: agent-ssl
+            containerPort: 61621
+          - name: dse
+            containerPort: 50031
+        env:
+          - name: MAX_HEAP_SIZE
+            value: 512M
+          - name: HEAP_NEWSIZE
+            value: 100M
+          - name: KUBERNETES_API_PROTOCOL
+            value: http
+    nodeSelector:
+        region: zone1

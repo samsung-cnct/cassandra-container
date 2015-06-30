@@ -1,0 +1,46 @@
+apiVersion: v1beta3
+kind: ReplicationController
+metadata:
+    labels:
+        name: cassandra
+    name: cassandra
+spec:
+  replicas: 2
+  selector:
+    name: cassandra
+  template:
+    metadata:
+        labels:
+            name: cassandra
+    spec:
+        containers:
+          - name: cassandra
+            image: 172.16.16.15:5000/cassandra_kub_mln:v20slim
+            resources:
+                limits:
+                    cpu: 1
+            ports:
+              - name: cql
+                containerPort: 9042
+              - name: thrift
+                containerPort: 9160
+              - name: jmx
+                containerPort: 7199
+              - name: huh
+                containerPort: 7000
+              - name: huh-ssl
+                containerPort: 7001
+              - name: agent
+                containerPort: 61620
+              - name: agent-ssl
+                containerPort: 61621
+              - name: dse
+                containerPort: 50031
+            volumeMounts:
+              - name: data
+                mountPath: /cassandra_data
+        volumes:
+          - name: data
+            emptyDir: {}
+        nodeSelector:
+            region: zone2
