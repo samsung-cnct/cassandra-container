@@ -14,7 +14,7 @@ DOCKER_REPO ?= $(DEFAULT_REPO)
 REPO := $(DOCKER_REPO)
 #
 #
-DOCKER_IMAGE := cassandra_kub
+DOCKER_IMAGE := cassandra_kub_mln
 
 repo-warning:
 	@if  [ $(DOCKER_REPO) =  $(DEFAULT_REPO) ]; then \
