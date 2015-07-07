@@ -1,3 +1,4 @@
 Dockerfile
 cassandra_kub_mln
+cassandra_kub
 *.*.orig

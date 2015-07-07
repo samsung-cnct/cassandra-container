@@ -44,7 +44,7 @@ RUN curl -v -O http://stedolan.github.io/jq/download/linux64/jq \
 #
 # USE OUR VERSION OF cassandra.yaml... it has the correct java seed impl and the needed perl markers for IP substitution
 COPY cassandra.yaml /etc/cassandra/cassandra.yaml
-COPY KubSeedProv-2.3-SNAPSHOT.jar /kubernetes-cassandra.jar
+COPY KubSeedProv-2.4-SNAPSHOT.jar /kubernetes-cassandra.jar
 COPY init.sh /usr/local/bin/cass-dock
 COPY shutdown.sh /usr/local/bin/cass-stop
 #
