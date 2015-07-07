@@ -39,7 +39,7 @@ build-all: build-app
 
 build-app: $(DOCKER_IMAGE)
 
-$(DOCKER_IMAGE): Dockerfile.kub.slim init.sh $(CUSTOME_JAR) cassandra.yaml 
+$(DOCKER_IMAGE): Dockerfile.kub.slim init.sh $(CUSTOM_JAR) cassandra.yaml 
 	@echo "building app $(VERSION)"
 	#
 	docker build -f Dockerfile.kub.slim -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) --rm=true --force-rm=true .
