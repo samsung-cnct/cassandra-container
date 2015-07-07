@@ -5,7 +5,7 @@
 #
 # 3/19/2015 mln
 #
-VERSION := v4slim
+VERSION := v05slim
 #
 # do some repo evals... want everyone to use their own, unless building for the team
 #
@@ -14,7 +14,7 @@ DOCKER_REPO ?= $(DEFAULT_REPO)
 REPO := $(DOCKER_REPO)
 #
 #
-DOCKER_IMAGE := opscenter_kub_mln
+DOCKER_IMAGE := opscenter_kub
 
 repo-warning:
 	@if  [ $(DOCKER_REPO) =  $(DEFAULT_REPO) ]; then \
@@ -41,10 +41,7 @@ build-app: $(DOCKER_IMAGE)
 $(DOCKER_IMAGE): Dockerfile.kub.slim init.sh 
 	@echo "building app $(VERSION)"
 	#
-	# workaround until docker 1.5.0 -f
-	cp Dockerfile.kub.slim Dockerfile
-	#docker build -f Dockerfile.kub.slim -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) .
-	docker build -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) --rm=true --force-rm=true .
+	docker build -f Dockerfile.kub.slim  -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) --rm=true --force-rm=true .
 	@touch $@
 	@docker images $(REPO)/$(DOCKER_IMAGE)
 
@@ -52,7 +49,6 @@ push:
 	docker push $(REPO)/$(DOCKER_IMAGE):$(VERSION)
 
 clean: clean-app
-	-rm -f Dockerfile
 
 clean-app:
 	-docker rmi $(REPO)/$(DOCKER_IMAGE):$(VERSION)
