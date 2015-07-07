@@ -14,7 +14,8 @@ DOCKER_REPO ?= $(DEFAULT_REPO)
 REPO := $(DOCKER_REPO)
 #
 #
-DOCKER_IMAGE := cassandra_kub_mln
+DOCKER_IMAGE := cassandra_kub
+CUSTOM_JAR := KubSeedProv-2.4-SNAPSHOT.jar
 
 repo-warning:
 	@if  [ $(DOCKER_REPO) =  $(DEFAULT_REPO) ]; then \
@@ -38,16 +39,16 @@ build-all: build-app
 
 build-app: $(DOCKER_IMAGE)
 
-$(DOCKER_IMAGE): Dockerfile.kub.slim init.sh KubSeedProv-2.3-SNAPSHOT.jar cassandra.yaml 
+$(DOCKER_IMAGE): Dockerfile.kub.slim init.sh $(CUSTOME_JAR) cassandra.yaml 
 	@echo "building app $(VERSION)"
 	#
 	docker build -f Dockerfile.kub.slim -t $(REPO)/$(DOCKER_IMAGE):$(VERSION) --rm=true --force-rm=true .
 	@touch $@
 	@docker images $(REPO)/$(DOCKER_IMAGE)
 
-KubSeedProv-2.3-SNAPSHOT.jar:
+$(CUSTOM_JAR):
 	@echo "=========================================================================="
-	@echo "KubSeedProv-2.3-SNAPSHOT.jar is built in the java directory via mvn build"
+	@echo " $(CUSTOM_JAR) is built in the java directory via mvn build"
 	@echo "  You will have to build it by hand.  Build is not automated"
 	@echo "=========================================================================="
 
