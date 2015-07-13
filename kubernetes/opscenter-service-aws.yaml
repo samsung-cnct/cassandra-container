@@ -1,4 +1,4 @@
-apiVersion: v1beta3
+apiVersion: v1
 kind: Service
 metadata:
     labels: 
@@ -7,9 +7,10 @@ metadata:
 spec:
     ports:
         - name: webui
-          port: 8888
-          targetPort: 8888
-    publicIPs: [ 10.1.101.103 ]
+          port: 30888
+          targetPort: 30888
+          nodeport: 30888
     selector:
         name: opscenter
+    type: NodePort
 

@@ -49,8 +49,8 @@ echo "    .kubeconfig is from our kraken project"
 echo " "
 echo "  And you must have your ~/.kube/config for you cluster set up.  e.g."
 echo " "
-echo "  local: kubectl config set-cluster local --server=http://172.16.1.102:8080 --api-version=v1beta3"
-echo "  aws:   kubectl config set-cluster aws --server=http:////52.25.218.223:8080 --api-version=v1beta3"
+echo "  local: kubectl config set-cluster local --server=http://172.16.1.102:8080 "
+echo "  aws:   kubectl config set-cluster aws --server=http:////52.25.218.223:8080 "
 echo "=================================================="
 #----------------------
 # start the services first...this is so the ENV vars are available to the pods
@@ -143,7 +143,7 @@ echo "found kubectl at: ${KUBECTL}"
 # XXX: kubectl doesn't seem to provide an out-of-the-box way to ask if a cluster
 #      has already been set so we just assume it's already been configured, eg:
 #
-#      kubectl config set-cluster local --server=http://172.16.1.102:8080 --api-version=v1beta3
+#      kubectl config set-cluster local --server=http://172.16.1.102:8080 
 kubectl_local="${KUBECTL} --cluster=${CLUSTER_LOC}"
 
 CMDTEST=`$kubectl_local version`   

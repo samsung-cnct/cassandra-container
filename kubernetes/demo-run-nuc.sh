@@ -51,8 +51,8 @@ echo "  up and Running.  "
 echo " "
 echo "  And you must have your ~/.kube/config for you cluster set up.  e.g."
 echo " "
-echo "  local: kubectl config set-cluster local --server=http://172.16.1.102:8080 --api-version=v1beta3"
-echo "  aws:   kubectl config set-cluster aws --server=http:////52.25.218.223:8080 --api-version=v1beta3"
+echo "  local: kubectl config set-cluster local --server=http://172.16.1.102:8080 "
+echo "  aws:   kubectl config set-cluster aws --server=http:////52.25.218.223:8080 "
 echo "=================================================="
 #----------------------
 # start the services first...this is so the ENV vars are available to the pods
@@ -112,7 +112,7 @@ echo "found kubectl at: ${KUBECTL}"
 # XXX: kubectl doesn't seem to provide an out-of-the-box way to ask if a cluster
 #      has already been set so we just assume it's already been configured, eg:
 #
-#      kubectl config set-cluster local --server=http://172.16.1.102:8080 --api-version=v1beta3
+#      kubectl config set-cluster local --server=http://172.16.1.102:8080 
 kubectl_local="${KUBECTL} --cluster=${CLUSTER_LOC}"
 
 CMDTEST=$($kubectl_local version)
@@ -525,9 +525,9 @@ echo " "
 #
 # NO ERROR CHECKING HERE...this is ALL just Informational for the user
 #
-#v1beta3
+#
 SERVICEIP=$($kubectl_local get services opscenter --output=template --template="{{.spec.portalIP}}" 2>/dev/null)
-PUBLICPORT=$($kubectl_local get services opscenter --output=template --template="{{range $.spec.ports}}{{.port}}${CRLF}{{end}}" 2>/dev/null)
+PUBLICPORT=$($kubectl_local get services opscenter --output=template --template="{{range $.spec.ports}}{{.nodePort}}${CRLF}{{end}}" 2>/dev/null)
 PUBLICIP=$($kubectl_local get services opscenter --output=template --template="{{.spec.publicIPs}}" 2>/dev/null)
 
 # remove [] if present
@@ -536,14 +536,14 @@ PUBLICIPS=$(echo $PUBLICIP | tr -d '[]' | tr , '\n')
 # NEED TO VALIDATE the PUBLICIPS against the NODEIPS
 #
 VALIDIPS=""
-for ip0 in ${PUBLICIPS};do
-    for ip1 in ${NODEIPS};do
-        if [ "$ip0" == "$ip1" ];then
+#for ip0 in ${PUBLICIPS};do
+    for ip0 in ${NODEIPS};do
+#        if [ "$ip0" == "$ip1" ];then
             VALIDIPS=${VALIDIPS}${CRLF}$ip0
             break
-        fi
+#        fi
     done
-done
+#done
 #
 # check to see that we acutally HAVE a publicly accessible IP
 #
@@ -565,7 +565,7 @@ if [ -z "$VALIDIPS" ];then
 fi
 
 # remove trailing comma
-# v1beta3
+# 
 PODIP=$($kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.podIP}}, {{end}}" 2>/dev/null)
 PODIPS=$(echo $PODIP | sed 's/,$//' | tr , '\n')
 
