@@ -1,4 +1,4 @@
-apiVersion: v1beta3
+apiVersion: v1
 kind: Pod
 metadata:
     labels:
@@ -7,10 +7,12 @@ metadata:
 spec:
     containers:
       - name: opscenter
-        image: quay.io/mikeln/opscenter_kub:v05slim
+        image: quay.io/mikeln/opscenter_kub:v06slim
         limits:
             cpu: 1
         ports:
+          - name: webport 
+            containerPort: 30888
           - name: web 
             containerPort: 8888
           - name: cql

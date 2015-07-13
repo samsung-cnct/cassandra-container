@@ -28,7 +28,7 @@ There are 2 scripts: ````demo-run.sh```` and ````demo-down.sh````.
         apiVersion: v1
         clusters:
         - cluster:
-            api-version: v1beta3
+            api-version: v1
             server: http://172.16.1.102:8080
           name: local
         contexts: []

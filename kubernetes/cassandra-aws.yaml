@@ -1,4 +1,4 @@
-apiVersion: v1beta3
+apiVersion: v1
 kind: Pod
 metadata:
     labels:
@@ -29,12 +29,10 @@ spec:
           - name: data
             mountPath: /cassandra_data
         env:
-#          - name: MAX_HEAP_SIZE
-#            value: 512M
-#          - name: HEAP_NEWSIZE
-#            value: 100M
-#          - name: KUBERNETES_API_PROTOCOL
-#            value: http
+          - name: MAX_HEAP_SIZE
+            value: 512M
+          - name: HEAP_NEWSIZE
+            value: 100M
     volumes:
       - name: data
         emptyDir: {}
