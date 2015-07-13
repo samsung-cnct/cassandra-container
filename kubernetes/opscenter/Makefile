@@ -5,7 +5,7 @@
 #
 # 3/19/2015 mln
 #
-VERSION := v05slim
+VERSION := v06slim
 #
 # do some repo evals... want everyone to use their own, unless building for the team
 #
