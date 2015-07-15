@@ -1,11 +1,11 @@
-#!/bin/bash 
+#!/bin/bash  
 #
 # Script to label for nuc demo
 #
 # 6/25/2015 mikeln
 #-------
 #
-VERSION="NUC DEMO 1.0"
+VERSION="NUC AWS DEMO 2.0"
 function usage
 {
     echo "Labels Kubernetes Nodes"
@@ -16,6 +16,7 @@ function usage
     echo "Flags:"
     echo "  -h, -?, --help :: print usage"
     echo "  -v, --version :: print script verion"
+    echo "  --aws :: label cluster with AWS in the mix"
     echo ""
 }
 function version
@@ -62,6 +63,7 @@ echo "=================================================="
 # DEMO>>>>> default for this is nuc
 #
 CLUSTER_LOC="nuc"
+AWS_LABLE="NO"
 TMP_LOC=$CLUSTER_LOC
 while [ "$1" != "" ]; do
     case $1 in
@@ -76,6 +78,9 @@ while [ "$1" != "" ]; do
         -h | -? | --help )
             usage
             exit
+            ;;
+        --aws )
+            AWS_LABEL="YES"
             ;;
          * ) 
              usage
@@ -92,7 +97,7 @@ if [ -z "$TMP_LOC" ];then
 else
     CLUSTER_LOC=$TMP_LOC
 fi
-echo "Using Kubernetes cluster: $CLUSTER_LOC"
+echo "Using Kubernetes cluster: $CLUSTER_LOC AWS in the mix: $AWS_LABEL"
 #
 # setup trap for script signals
 #
@@ -137,22 +142,38 @@ echo "======== labeling nodes ====================================="
 OLABEL="region=zone1"
 OPSCENTER_NODE="172.16.16.16"
 echo "Labelling: $OPSCENTER_NODE with $OLABEL"
-$kubectl_local label nodes $OPSCENTER_NODE $OLABEL
+$kubectl_local label nodes --overwrite $OPSCENTER_NODE $OLABEL
 
 #CLABEL="type=cassandra"
 CLABEL="region=zone2"
 CASSANADRA_NODES=("172.16.16.40" "172.16.16.41" "172.16.16.42" "172.16.16.43" "172.16.16.44" "172.16.16.45" "172.16.16.46" "172.16.16.47" "172.16.16.48" "172.16.16.49" )
 for CNODE in ${CASSANADRA_NODES[@]}; do
   echo "Labelling $CNODE with $CLABEL"
-  $kubectl_local label nodes $CNODE $CLABEL
+  $kubectl_local label nodes --overwrite $CNODE $CLABEL
 done
 
 TLABEL="region=zone3"
 REGION_NODES=("172.16.16.50" "172.16.16.51" "172.16.16.52" "172.16.16.53" "172.16.16.54" "172.16.16.55" "172.16.16.56" "172.16.16.57" "172.16.16.58" "172.16.16.59" )
-for TNODE in ${REGION_NODES[@]}; do
-  echo "Labelling $TNODE with $TLABEL"
-  $kubectl_local label nodes $TNODE $TLABEL
-done
+
+AWS_NODES=("10.1.101.50" "10.1.101.51" "10.1.101.52" "10.1.101.53" "10.1.101.54" )
+
+if [ "$AWS_LABEL" == "YES" ];then
+   # if aws then all nucs are region 2
+   for TNODE in ${REGION_NODES[@]}; do
+      echo "Labelling $TNODE with $CLABEL"
+      $kubectl_local label nodes --overwrite $TNODE $CLABEL
+   done
+
+   for ANODE in ${AWS_NODES[@]}; do
+     echo "Labelling $ANODE with $TLABEL"
+     $kubectl_local label nodes --overwrite $ANODE $TLABEL
+   done
+else
+   for TNODE in ${REGION_NODES[@]}; do
+      echo "Labelling $TNODE with $TLABEL"
+      $kubectl_local label nodes --overwrite $TNODE $TLABEL
+   done
+fi
 
 echo " "
 $kubectl_local get nodes 
