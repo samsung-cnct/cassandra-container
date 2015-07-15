@@ -1,12 +1,12 @@
 #!/bin/bash
 #
 # Script to start all the pieces of the cassandra cluster demo with opscenter
+# uses jq to eval json returns from kubectl
 #
 # 4/15/2015 mikeln
-# 6/25/2015 mikeln
 #-------
 #
-VERSION="NUC DEMO 1.0"
+VERSION="2.0"
 function usage
 {
     echo "Runs cassandra cluster and opscenter"
@@ -46,6 +46,8 @@ echo "     kubectl will be located at (for OS-X):"
 echo "       in the user's PATH or at"
 echo "       /opt/kubernetes/platforms/darwin/amd64/kubectl"
 echo " "
+echo "  This script uses jq to parse json.  It must be installed."
+echo " "
 echo "  Also, your Kraken Kubernetes Cluster Must be"
 echo "  up and Running.  "
 echo " "
@@ -59,8 +61,6 @@ echo "=================================================="
 #----------------------
 #
 # process args
-#
-# DEMO>>>>> default for this is nuc
 #
 CLUSTER_LOC="nuc"
 TMP_LOC=$CLUSTER_LOC
@@ -99,10 +99,17 @@ echo "Using Kubernetes cluster: $CLUSTER_LOC"
 #
 trap "echo ' ';echo ' ';echo 'SIGNAL CAUGHT, SCRIPT TERMINATING, cleaning up'; . ./demo-down.sh --cluster $CLUSTER_LOC; exit 9 " SIGHUP SIGINT SIGTERM
 #
+# check for required additional BASH app to parse json: 'jq'
+#
+which jq
+if [ $? -ne 0 ];then
+	echo "ERROR! jq is not accessible.  Please install it and make sure it is on your PATH"
+	exit 8
+fi
+#
 # check to see if kubectl has been configured
 #
 echo " "
-
 KUBECTL=$(locate_kubectl)
 if [ $? -ne 0 ]; then
   exit 1
@@ -125,16 +132,24 @@ fi
 echo " "
 # get minion IPs for later...also checks if cluster is up...and if your .kube/config is defined
 echo "+++++ finding Kubernetes Nodes services ++++++++++++++++++++++++++++"
-NODEIPS=$($kubectl_local get nodes --output=template --template="{{range $.items}}{{.metadata.name}}${CRLF}{{end}}" 2>/dev/null)
+NODEIPS=""
+NODERET=$($kubectl_local get nodes --output=json  2>/dev/null)
 if [ $? -ne 0 ]; then
     echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running? Did you set the correct values in your ~/.kube/config file for ${CLUSTER_LOC}?"
     exit 1;
+else
+    #
+    # TODO: should probably validate that the status id Ready for the minions.  low level concern 
+    #
+    # parset the json returned
+    NODEIPS=$( echo ${NODERET} | jq '.items[].metadata.name' | tr -d "\"" )
+    #
+    # TODO: may need to eval the return
+    #
 fi
 echo " "
 echo "======== labeling nodes ====================================="
-echo "  NODES NEED TO BE PRELABELLED! Run nuc-label.sh"
-echo "======== labeling nodes ====================================="
-echo " "
+echo "   NODES NEED TO BE PRELABELLED! Run nuc-label.sh"
 echo "+++++ starting cassandra services ++++++++++++++++++++++++++++"
 #
 # check to see if the services are already running...don't start if so
@@ -302,12 +317,19 @@ $kubectl_local get rc
 echo " "
 #
 # see how many are running...if less than desired start the otheres
-CUR_SIZE=$($kubectl_local get rc  cassandra --output=template --template="{{$.status.replicas}}" 2>/dev/null)
+CUR_SIZE_RET=$($kubectl_local get rc  cassandra --output=json 2>/dev/null)
 if [ $? -ne 0 ]; then
     echo "Error getting number of Cassandra Pods Replicated"
     . ./demo-down.sh --cluster $CLUSTER_LOC
     exit 3
 else
+    #
+    # parse pson return
+    #
+    CUR_SIZE=$( echo ${CUR_SIZE_RET} | jq '.status.replicas' | tr -d "\"" )
+    #
+    # TODO: may need to eval for errors
+    #
     echo "Current cassandra initial nodes: $CUR_SIZE final wanted: $FINAL_SIZE"
     if [ $CUR_SIZE -lt $FINAL_SIZE ]; then
         # start the others
@@ -322,7 +344,7 @@ else
         RUNSTAT=0
         while [ $NUMTRIES -ne 0 ] && [ $COMBSTAT -ne 0 ]; do
             let REMTIME=NUMTRIES*5
-            LASTSTATUS=$($kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.phase}}${CRLF}{{end}}" 2>/dev/null)
+            LASTSTATUS_RET=$($kubectl_local get pods --selector=name=cassandra --output=json  2>/dev/null)
             LASTRET=$?
             if [ $? -ne 0 ]; then
                 echo -n "Cassandra get seed pods not problem $REMTIME                                         $CR"
@@ -330,6 +352,13 @@ else
                 let NUMTRIES=NUMTRIES-1
                 sleep 5
             else
+		#
+		# parse json
+		#
+		LASTSTATUS=$( echo ${LASTSTATUS_RET} | jq '.items[].status.phase' | tr -d "\"" )
+		#
+		# TODO: eval for error...
+		#
                 #echo "Cassandra get pods found - evaluate statuses -----"
                 #
                 # pre set the default
@@ -395,7 +424,7 @@ else
         RUNSTAT=0
         while [ $NUMTRIES -ne 0 ] && [ $COMBSTAT -ne 0 ]; do
             let REMTIME=NUMTRIES*5
-            LASTSTATUS=$($kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.phase}}${CRLF}{{end}}" 2>/dev/null)
+            LASTSTATUS_RET=$($kubectl_local get pods --selector=name=cassandra --output=json  2>/dev/null)
             LASTRET=$?
             if [ $? -ne 0 ]; then
                 echo -n "Cassandra get pods not problem $REMTIME                                         $CR"
@@ -403,6 +432,13 @@ else
                 let NUMTRIES=NUMTRIES-1
                 sleep 5
             else
+		#
+		# parse json
+		#
+		LASTSTATUS=$( echo ${LASTSTATUS_RET} | jq '.items[].status.phase' | tr -d "\"" )
+		#
+		# TODO: eval for error...
+		#
                 #echo "Cassandra get pods found - evaluate statuses -----"
                 #
                 # pre set the default
@@ -480,7 +516,7 @@ LASTRET=1
 LASTSTATUS="unknown"
 while [ $NUMTRIES -ne 0 ] && [ "$LASTSTATUS" != "Running" ]; do
     let REMTIME=NUMTRIES*5
-    LASTSTATUS=$($kubectl_local get pods opscenter --output=template --template={{.status.phase}} 2>/dev/null)
+    LASTSTATUS_RET=$($kubectl_local get pods opscenter --output=json  2>/dev/null)
     LASTRET=$?
     if [ $? -ne 0 ]; then
         echo -n "Opscenter pod not found $REMTIME"
@@ -494,6 +530,13 @@ while [ $NUMTRIES -ne 0 ] && [ "$LASTSTATUS" != "Running" ]; do
         let NUMTRIES=NUMTRIES-1
         sleep 5
     else
+	#
+	# parse json
+	#
+	LASTSTATUS=$( echo ${LASTSTATUS_RET} | jq '.status.phase' | tr -d "\"" )
+	#
+	# TODO: eval for error...
+        #
         #echo "Opscenter pod found $LASTSTATUS"
         if [ "$LASTSTATUS" != "Running" ]; then
             echo -n "Opscenter pod: $LASTSTATUS - NOT running $REMTIME secs remaining"
@@ -526,9 +569,11 @@ echo " "
 # NO ERROR CHECKING HERE...this is ALL just Informational for the user
 #
 #
-SERVICEIP=$($kubectl_local get services opscenter --output=template --template="{{.spec.portalIP}}" 2>/dev/null)
-PUBLICPORT=$($kubectl_local get services opscenter --output=template --template="{{range $.spec.ports}}{{.nodePort}}${CRLF}{{end}}" 2>/dev/null)
-PUBLICIP=$($kubectl_local get services opscenter --output=template --template="{{.spec.publicIPs}}" 2>/dev/null)
+PUBLICPORT_RET=$($kubectl_local get services opscenter --output=json  2>/dev/null)
+PUBLICPORT=$( echo ${PUBLICPORT_RET} | jq '.spec.ports[].nodePort' | tr -d "\"" )
+
+PUBLICIP_RET=$($kubectl_local get services opscenter --output=json  2>/dev/null)
+PUBLICIP=$( echo ${PUBLICIP_RET} | jq '.spec.publicIPs' | tr -d "\"" )
 
 # remove [] if present
 PUBLICIPS=$(echo $PUBLICIP | tr -d '[]' | tr , '\n')
@@ -566,7 +611,8 @@ fi
 
 # remove trailing comma
 # 
-PODIP=$($kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.podIP}}, {{end}}" 2>/dev/null)
+PODIP_RET=$($kubectl_local get pods --selector=name=cassandra --output=json 2>/dev/null)
+PODIP=$( echo ${PODIP_RET} | jq '.items[].status.podIP' | tr -d "\"" )
 PODIPS=$(echo $PODIP | sed 's/,$//' | tr , '\n')
 
 echo "===================================================================="

@@ -1,11 +1,12 @@
 #!/bin/bash
 #
 # Script to resize cassandra cluster
+# uses jq to eval json returns from kubedtl
 #
 # 5/3/2015 mikeln
 #-------
 #
-VERSION="1.0"
+VERSION="2.0"
 function usage
 {
     echo "Resizes cassandra cluster"
@@ -45,7 +46,8 @@ echo "  This script uses our kraken project assumptions:"
 echo "     kubectl will be located at (for OS-X):"
 echo "       in the user's PATH or"
 echo "       /opt/kubernetes/platforms/darwin/amd64/kubectl"
-echo "    .kubeconfig is from our kraken project"
+echo " "
+echo "  This script uses jq to parse json.  It must be installed."
 echo " "
 echo "  And you must have your ~/.kube/config for you cluster set up.  e.g."
 echo " "
@@ -108,32 +110,17 @@ echo "Using Kubernetes cluster: $CLUSTER_LOC"
 #
 trap "echo ' ';echo ' ';echo 'SIGNAL CAUGHT, SCRIPT TERMINATING, cleaning up'; exit 9 " SIGHUP SIGINT SIGTERM
 #
+# check for required additional BASH app to parse json: 'jq'
+#
+which jq
+if [ $? -ne 0 ];then
+        echo "ERROR! jq is not accessible.  Please install it and make sure it is on your PATH"
+        exit 8
+fi
+#
 # check to see if kubectl has been configured
 #
 echo " "
-echo "Locating Kraken Project kubectl and .kubeconfig..."
-SCRIPTPATH="$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )"
-cd ${SCRIPTPATH}
-DEVBASE=${SCRIPTPATH%/cassandra-container/kubernetes}
-echo "DEVBASE ${DEVBASE}"
-#
-# locate projects...
-#
-KRAKENDIR=`find ${DEVBASE} -type d -name "kraken" -print | egrep '.*'`
-if [ $? -ne 0 ];then
-    echo "Could not find the Kraken project."
-    exit 1
-else
-    echo "found: $KRAKENDIR"
-fi
-#KUBECONFIG=`find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC} -type f -name ".kubeconfig" -print | egrep '.*'`
-#if [ $? -ne 0 ];then
-#    echo "Could not find ${KRAKENDIR}/kubernetes/${CLUSTER_LOC}/.kubeconfig"
-#    exit 1
-#else
-#    echo "found: $KUBECONFIG"
-#fi
-
 KUBECTL=$(locate_kubectl)
 if [ $? -ne 0 ]; then
   exit 1
@@ -146,7 +133,7 @@ echo "found kubectl at: ${KUBECTL}"
 #      kubectl config set-cluster local --server=http://172.16.1.102:8080 
 kubectl_local="${KUBECTL} --cluster=${CLUSTER_LOC}"
 
-CMDTEST=`$kubectl_local version`   
+CMDTEST=$( $kubectl_local version )
 if [ $? -ne 0 ]; then
     echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running?"
     exit 1;
@@ -156,7 +143,7 @@ fi
 echo " "
 # get minion IPs for later...also checks if cluster is up
 echo "+++++ finding Kubernetes Nodes services ++++++++++++++++++++++++++++"
-NODEIPS=`$kubectl_local get nodes --output=template --template="{{range $.items}}{{.metadata.name}}${CRLF}{{end}}" 2>/dev/null`
+NODERET=$($kubectl_local get nodes --output=json  2>/dev/null)
 if [ $? -ne 0 ]; then
     echo "kubectl is not responding. Is your Kraken Kubernetes Cluster Up and Running? (Hint: vagrant status, vagrant up)"
     exit 1;
@@ -164,6 +151,11 @@ else
     #
     # TODO: should probably validate that the status id Ready for the minions.  low level concern 
     #
+    # parset the json returned
+    NODEIPS=$( echo ${NODERET} | jq '.items[].metadata.name' | tr -d "\"" )
+    #
+    # TODO: may need to eval the return
+    #    #
     echo "Kubernetes minions (nodes) IP(s):"
     for ip in $NODEIPS;do
         echo "   $ip "
@@ -192,7 +184,7 @@ echo " "
         RUNSTAT=0
         while [ $NUMTRIES -ne 0 ] && [ $COMBSTAT -ne 0 ]; do
             let REMTIME=NUMTRIES*5
-            LASTSTATUS=`$kubectl_local get pods --selector=name=cassandra --output=template --template="{{range $.items}}{{.status.phase}}${CRLF}{{end}}" 2>/dev/null`
+            LASTSTATUS_RET=$($kubectl_local get pods --selector=name=cassandra --output=json  2>/dev/null)
             LASTRET=$?
             if [ $? -ne 0 ]; then
                 echo -n "Cassandra get pods not problem $REMTIME                                         $CR"
@@ -200,6 +192,13 @@ echo " "
                 let NUMTRIES=NUMTRIES-1
                 sleep 5
             else
+                #
+                # parse json
+                #
+                LASTSTATUS=$( echo ${LASTSTATUS_RET} | jq '.items[].status.phase' | tr -d "\"" )
+                #
+                # TODO: eval for error...
+                #
                 #echo "Cassandra get pods found - evaluate statuses -----"
                 #
                 # pre set the default
