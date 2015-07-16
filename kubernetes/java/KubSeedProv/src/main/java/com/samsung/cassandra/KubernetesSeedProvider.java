@@ -106,7 +106,7 @@ public class KubernetesSeedProvider implements SeedProvider {
 	//
         String host = "https://kubernetes.default";
         String serviceName = getEnvOrDefault("CASSANDRA_SERVICE", "cassandra");
-        String path = "/api/v1beta3/namespaces/default/endpoints/";
+        String path = "/api/v1/namespaces/default/endpoints/";
         try {
             //String token = getServiceAccountToken();
 
