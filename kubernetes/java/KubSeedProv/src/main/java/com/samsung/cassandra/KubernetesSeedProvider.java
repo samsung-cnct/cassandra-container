@@ -35,7 +35,7 @@ public class KubernetesSeedProvider implements SeedProvider {
     
     @JsonIgnoreProperties(ignoreUnknown = true)
     static class Address {
-        public String IP;
+        public String ip;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -129,7 +129,7 @@ public class KubernetesSeedProvider implements SeedProvider {
                 if (endpoints.subsets != null && !endpoints.subsets.isEmpty()){
                     for (Subset subset : endpoints.subsets) {
                         for (Address address : subset.addresses) {
-                            list.add(InetAddress.getByName(address.IP));
+                            list.add(InetAddress.getByName(address.ip));
                         }
                     }
                 }
