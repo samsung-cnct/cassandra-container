@@ -15,7 +15,7 @@ spec:
     spec:
         containers:
           - name: cassandra
-            image: quay.io/mikeln/cassandra_kub:v23slim
+            image: quay.io/mikeln/cassandra_kub:v24slim
             resources:
                 limits:
                     cpu: 1

@@ -46,7 +46,7 @@ else
         #
         # parse for enpoint address...use first one (there should NEVER be more than one..but...)
         #
-        STOMPIP=$( echo ${OPSRET} | jq '.subsets[0].addresses[0].IP' | tr -d '"' )
+        STOMPIP=$( echo ${OPSRET} | jq '.subsets[0].addresses[0].ip' | tr -d '"' )
         if [ -z $STOMPIP ] || [ $STOMPIP == "null" ]; then
             echo "WARN No Opscenter IP found: ${STOMPIP}"
         else
