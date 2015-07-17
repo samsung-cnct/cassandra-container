@@ -34,11 +34,11 @@ else
     #
     # opscenter POD ... MUST be named opscenter
     #
-    #KUBSSL="https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1beta3/namespaces/default/endpoints/opscenter"
+    #KUBSSL="https://${KUBERNETES_SERVICE_HOST}:${KUBERNETES_SERVICE_PORT}/api/v1/namespaces/default/endpoints/opscenter"
     # 
     # Use DNS instead.  Do NOT include domain as it may be different from system to system
     #
-    KUBSSL="https://kubernetes.default/api/v1beta3/namespaces/default/endpoints/opscenter"
+    KUBSSL="https://kubernetes.default/api/v1/namespaces/default/endpoints/opscenter"
     OPSRET=$(curl -s -L --insecure ${KUBSSL})
     if [ $? -ne 0 ];then
         echo "ERROR with ${KUBSSL}.  Stomp address not set"
