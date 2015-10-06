@@ -5,7 +5,7 @@
 #
 # 3/12/2015 mln
 #
-VERSION := v24slim
+VERSION := v26slim
 #
 # do some repo evals... want everyone to use their own, unless building for the team
 #
@@ -15,7 +15,7 @@ REPO := $(DOCKER_REPO)
 #
 #
 DOCKER_IMAGE := cassandra_kub
-CUSTOM_JAR := KubSeedProv-2.6-SNAPSHOT.jar
+CUSTOM_JAR := KubSeedProv-2.7-SNAPSHOT.jar
 
 repo-warning:
 	@if  [ $(DOCKER_REPO) =  $(DEFAULT_REPO) ]; then \
