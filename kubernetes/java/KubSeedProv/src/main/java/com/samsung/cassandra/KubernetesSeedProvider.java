@@ -100,20 +100,24 @@ public class KubernetesSeedProvider implements SeedProvider {
 
     public List<InetAddress> getSeeds() {
         List<InetAddress> list = new ArrayList<InetAddress>();
+	String proto = "https://";
 	//
-	// Don't specify domain as it may be differnet per sintall
-	// e.g. we user kubernetes.local but exapple used cluster.local
-	//
-        String host = "https://kubernetes.default";
+	// Don't specify domain as it may be differnet per install
+	// e.g. we use kubernetes.local but example used cluster.local
+        //String host = "https://kubernetes.default";
+        String host = getEnvOrDefault("KUBERNETES_PORT_443_TCP_ADDR", "kubernetes.default.svc");
+        String port = getEnvOrDefault("KUBERNETES_PORT_443_TCP_PORT", "443");
         String serviceName = getEnvOrDefault("CASSANDRA_SERVICE", "cassandra");
-        String path = "/api/v1/namespaces/default/endpoints/";
+        String podNamespace = getEnvOrDefault("POD_NAMESPACE", "default");
+        String path = String.format("/api/v1/namespaces/%s/endpoints/", podNamespace);
         try {
-            //String token = getServiceAccountToken();
+            String token = getServiceAccountToken();
 
             SSLContext ctx = SSLContext.getInstance("SSL");
             ctx.init(null, trustAll, new SecureRandom());
 
-            URL url = new URL(host + path + serviceName);
+            URL url = new URL(proto + host + ":" + port + path + serviceName);
+	    logger.info("Getting endpoints from " + url);
             HttpsURLConnection conn = (HttpsURLConnection)url.openConnection();
 
             // TODO: Remove this once the CA cert is propogated everywhere, and replace
@@ -121,7 +125,7 @@ public class KubernetesSeedProvider implements SeedProvider {
             conn.setSSLSocketFactory(ctx.getSocketFactory());
             conn.setHostnameVerifier(trustAllHosts);
 
-            //conn.addRequestProperty("Authorization", "Bearer " + token);
+            conn.addRequestProperty("Authorization", "Bearer " + token);
             ObjectMapper mapper = new ObjectMapper();
             Endpoints endpoints = mapper.readValue(conn.getInputStream(), Endpoints.class);
             if (endpoints != null) {

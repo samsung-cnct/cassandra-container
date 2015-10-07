@@ -38,8 +38,21 @@ else
     # 
     # Use DNS instead.  Do NOT include domain as it may be different from system to system
     #
-    KUBSSL="https://kubernetes.default/api/v1/namespaces/default/endpoints/opscenter"
-    OPSRET=$(curl -s -L --insecure ${KUBSSL})
+    SERVICE_ACCOUNT_DIR="/var/run/secrets/kubernetes.io/serviceaccount"
+    # Use Token due to admission control...the token is required to be mounted in this location in the pod
+    # Also ca.crt is required to be mounted
+    KUBE_TOKEN=$(<$SERVICE_ACCOUNT_DIR/token)
+    #
+    # make more generic
+    #
+    PROTO="https:"
+    KUBE_HOST=${KUBERNETES_SERVICE_HOST:-"kubernetes.default.svc"}
+    KUBE_PORT=${KUBERNETES_SERVICE_PORT:-"443"}
+    KUBE_POD_NS=${POD_NAMESPACE:-"default"}
+    #KUBSSL="https://kubernetes.default/api/v1/namespaces/default/endpoints/opscenter"
+    KUBSSL="$PROTO//${KUBE_HOST}:${KUBE_PORT}/api/v1/namespaces/${KUBE_POD_NS}/endpoints/opscenter"
+    #OPSRET=$(curl -s -L --insecure -H "Authorization: Bearer $KUBE_TOKEN" ${KUBSSL})
+    OPSRET=$(curl -s -L --cacert ${SERVICE_ACCOUNT_DIR}/ca.crt -H "Authorization: Bearer ${KUBE_TOKEN}" ${KUBSSL})
     if [ $? -ne 0 ];then
         echo "ERROR with ${KUBSSL}.  Stomp address not set"
     else
