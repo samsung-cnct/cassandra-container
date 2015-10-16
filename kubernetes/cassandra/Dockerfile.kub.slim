@@ -27,9 +27,9 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886 \
     && curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add - \
     && DEBIAN_FRONTEND=noninteractive apt-get update -y \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    dsc20=2.0.11-1 \
-    cassandra=2.0.11  \
-    datastax-agent=5.1.1 \
+    dsc21=2.1.10-1 \
+    cassandra=2.1.10  \
+    datastax-agent=5.2.1 \
     sysstat \
     procps \
     && DEBIAN_FRONTEND=noninteractive apt-get remove -y --purge wget \
