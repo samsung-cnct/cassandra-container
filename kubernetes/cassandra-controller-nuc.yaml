@@ -15,7 +15,7 @@ spec:
     spec:
         containers:
           - name: cassandra
-            image: 172.16.16.15:5000/cassandra_kub:v28slim
+            image: 172.16.16.15:5000/cassandra_kub:v29slim
             resources:
                 limits:
                     cpu: 1
