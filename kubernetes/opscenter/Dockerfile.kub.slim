@@ -15,7 +15,7 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886 \
     &&  curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add - \
     &&  DEBIAN_FRONTEND=noninteractive apt-get update -y \
     &&  DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    opscenter=5.1.1 \
+    opscenter=5.2.1 \
     && DEBIAN_FRONTEND=noninteractive apt-get autoremove -y \
     &&  DEBIAN_FRONTEND=noninteractive apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

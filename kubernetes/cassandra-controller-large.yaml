@@ -5,7 +5,7 @@ metadata:
         name: cassandra
     name: cassandra
 spec:
-  replicas: 2
+  replicas: 50
   selector:
     name: cassandra
   template:
@@ -15,7 +15,7 @@ spec:
     spec:
         containers:
           - name: cassandra
-            image: 172.16.16.15:5000/cassandra_kub:v29slim
+            image: quay.io/mikeln/cassandra_kub:v29slim
             resources:
                 limits:
                     cpu: 1
@@ -56,4 +56,4 @@ spec:
           - name: data
             emptyDir: {}
         nodeSelector:
-            region: zone2
+          kraken-node: autoscaled

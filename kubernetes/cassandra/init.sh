@@ -73,7 +73,10 @@ fi
 #
 echo "local_interface: $IP" | sudo tee -a $DCONFIG/address.yaml
 echo "agent_rpc_interface: $IP" | sudo tee -a $DCONFIG/address.yaml
-echo "jmx_host: $IP" | sudo tee -a $DCONFIG/address.yaml
+#
+# 2.5.1 MLN allow to just default to localhost as db and agent are in the same pod
+#
+#echo "jmx_host: $IP" | sudo tee -a $DCONFIG/address.yaml
 echo "hosts: [ $IP ]" | sudo tee -a $DCONFIG/address.yaml
 #
 # seems to be root:root at this point..needs to be cassandra:cassandra
