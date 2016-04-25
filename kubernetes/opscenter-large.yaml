@@ -8,8 +8,6 @@ spec:
     containers:
       - name: opscenter
         image: quay.io/mikeln/opscenter_kub:v07slim
-        limits:
-            cpu: 1
         ports:
           - name: webport 
             containerPort: 30888

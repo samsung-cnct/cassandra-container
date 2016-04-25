@@ -8,10 +8,10 @@ spec:
     ports:
         - name: native
           port: 9042
-          nodeport: 30042
+          targetPort: 30042
         - name: thrift
           port: 9160
-          nodeport: 30160
+          targetPort: 30160
     selector:
         name: cassandra
     type: NodePort
