@@ -42,10 +42,10 @@ Should only need this in very specific situations
 * copy target/KubSeedProv-1.0-SNAPSHOT.jar ../../cassandra/KubSeedProv-1.0-SNAPSHOT.jar
 
 ## Required For Git Push
-* Make sure Dockerfile is a copy of the current build Dockerfile.kub.slim (or whatever).  This file will be used to build in quay.io.  This is for production, and the prod version will be built when this is merged to the samsungAG git repo.  The image should then be in quay.io/samaungAG/<>  repo.   
+* Make sure Dockerfile is a copy of the current build Dockerfile.kub.slim (or whatever).  This file will be used to build in quay.io.  This is for production, and the prod version will be built when this is merged to the samsung-cnct git repo.  The image should then be in quay.io/samaungAG/<>  repo.   
 
 * Make sure you tag the git checkin with the same value as the VERSION in the Makefile (e.g. v21slim).  Quay.io uses the git tag to tag the build it creates.
 
-* The Makefile is used for development and local builds.   It is possible to create a prod build with it also by setting the Repo env to quay.io/samsungAG.
+* The Makefile is used for development and local builds.   It is possible to create a prod build with it also by setting the Repo env to quay.io/samsung-cnct.
 
 
