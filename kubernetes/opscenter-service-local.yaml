@@ -9,8 +9,7 @@ spec:
         - name: webui
           port: 30888
           targetPort: 30888
-          nodePort: 30888
+          nodeport: 30888
     selector:
         name: opscenter
     type: NodePort
-
