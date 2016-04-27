@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+    labels: 
+        name: opscenter
+    name: opscenter
+spec:
+    ports:
+        - name: webui
+          port: 30888
+          targetPort: 30888
+          nodeport: 30888
+    selector:
+        name: opscenter
+    type: NodePort
