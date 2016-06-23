@@ -1,0 +1,149 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: cassandra
+---
+apiVersion: v1
+kind: Service
+metadata:
+    labels: 
+        name: opscenter
+    name: opscenter
+    namespace: cassandra
+spec:
+    ports:
+        - name: webui
+          port: 30888
+          targetPort: 30888
+          nodePort: 30888
+    selector:
+        name: opscenter
+    type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+    name: opscenter
+    namespace: cassandra
+spec:
+  replicas: 1
+  template:
+    metadata:
+        labels:
+            name: opscenter
+    spec:
+        containers:
+          - name: opscenter
+            image: quay.io/mikeln/opscenter_kub:v07slim
+            ports:
+              - name: webport 
+                containerPort: 30888
+              - name: web 
+                containerPort: 8888
+              - name: cql
+                containerPort: 9042
+              - name: thrift
+                containerPort: 9160
+              - name: jmx
+                containerPort: 7199
+              - name: huh
+                containerPort: 7000
+              - name: huh-ssl
+                containerPort: 7001
+              - name: agent
+                containerPort: 61620
+              - name: agent-ssl
+                containerPort: 61621
+              - name: dse
+                containerPort: 50031
+            env:
+              - name: MAX_HEAP_SIZE
+                value: 512M
+              - name: HEAP_NEWSIZE
+                value: 100M
+              - name: POD_NAME
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
+              - name: POD_NAMESPACE
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.namespace
+        nodeSelector:
+           kraken-node: node-001 
+---
+apiVersion: extensions/v1beta1
+kind: Deployment 
+metadata:
+    name: cassandra
+    namespace: cassandra
+spec:
+  replicas: 3
+  template:
+    metadata:
+        labels:
+            name: cassandra
+    spec:
+        containers:
+          - name: cassandra
+            image: quay.io/mikeln/cassandra_kub:v29slim
+            resources:
+                limits:
+                    cpu: 1
+            ports:
+              - name: cql
+                containerPort: 9042
+              - name: thrift
+                containerPort: 9160
+              - name: jmx
+                containerPort: 7199
+              - name: huh
+                containerPort: 7000
+              - name: huh-ssl
+                containerPort: 7001
+              - name: agent
+                containerPort: 61620
+              - name: agent-ssl
+                containerPort: 61621
+              - name: dse
+                containerPort: 50031
+            volumeMounts:
+              - name: data
+                mountPath: /cassandra_data
+            env:
+              - name: MAX_HEAP_SIZE
+                value: 512M
+              - name: HEAP_NEWSIZE
+                value: 100M
+              - name: POD_NAME
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.name
+              - name: POD_NAMESPACE
+                valueFrom:
+                  fieldRef:
+                    fieldPath: metadata.namespace
+        volumes:
+          - name: data
+            emptyDir: {}
+        nodeSelector:
+          kraken-node: autoscaled
+---
+apiVersion: v1
+kind: Service
+metadata:
+    labels:
+        name: cassandra
+    name: cassandra
+    namespace: cassandra
+spec:
+    ports:
+        - name: native
+          port: 9042
+          targetPort: 30042
+        - name: thrift
+          port: 9160
+          targetPort: 30160
+    selector:
+        name: cassandra
+    type: NodePort
