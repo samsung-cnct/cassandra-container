@@ -4,7 +4,7 @@
   <groupId>com.samsung.cassandra</groupId>
   <artifactId>KubSeedProv</artifactId>
   <packaging>jar</packaging>
-  <version>2.7-SNAPSHOT</version>
+  <version>3.0-SNAPSHOT</version>
   <name>KubSeedProv</name>
   <url>http://maven.apache.org</url>
   <dependencies>
