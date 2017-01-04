@@ -1,0 +1,108 @@
+# Default values for mikeln-cassandra.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+replicaCount: 1
+image:
+  repository: ubuntu
+  tag: 14.04
+  pullPolicy: IfNotPresent
+port8888WebUI: &port8888WebUI
+  port: 8888
+  targetPort: 8888
+  protocol: TCP
+  name: port-web-ui
+port61620Agent: &port61620Agent
+  port: 61620
+  targetPort: 61620
+  protocol: TCP
+  name: port-agent
+port7000Huh: &port7000Huh
+  port: 7000
+  targetPort: 7000
+  protocol: TCP
+  name: port-huh
+port7001HuhSSL: &port7001HuhSSL
+  port: 7001
+  targetPort: 7001
+  protocol: TCP
+  name: port-huh-ssl
+port7199JMX: &port7199JMX
+  port: 7199
+  targetPort: 7199
+  protocol: TCP
+  name: port-jmx
+port9042CQL: &port9042CQL
+  port: 9042
+  targetPort: 9042
+  protocol: TCP
+  name: port-cql
+port9160Thrift: &port9160Thrift
+  port: 9160
+  targetPort: 9160
+  protocol: TCP
+  name: port-thrift
+port61621AgentSSL: &port61621AgentSSL
+  port: 61621
+  targetPort: 61621
+  protocol: TCP
+  name: port-agent-ssl
+serviceOpscenter:
+  name: cassandra-opscenter
+  type: LoadBalancer
+  ports:
+  - *port8888WebUI
+  - *port61620Agent
+serviceSeed:
+  name: cassandra-seed
+  type: NodePort
+  ports:
+  - *port7000Huh
+  - *port7001HuhSSL
+  - *port7199JMX
+  - *port9042CQL
+  - *port9160Thrift
+  - *port61621AgentSSL
+service:
+  name: cassandra-svc
+  type: LoadBalancer
+  internalPort:
+opscenter:
+  replicaCount: 1
+  image:
+    repository: ubuntu
+    tag: 14.04
+    pullPolicy: IfNotPresent
+  ports:
+  - *port8888WebUI
+  - *port61620Agent
+  command:
+  - /bin/bash
+  - -e
+  - -c
+  - apt-get update; apt-get -y install wget; wget https://raw.githubusercontent.com/mikeln/google-container-engine-dse/dsc21/scripts/opscenter.sh; chmod +x opscenter.sh; ./opscenter.sh
+cassandra:
+  replicaCount: 4
+  image:
+    repository: ubuntu
+    tag: 14.04
+    pullPolicy: IfNotPresent
+  ports:
+  - *port7000Huh
+  - *port7001HuhSSL
+  - *port7199JMX
+  - *port9042CQL
+  - *port9160Thrift
+  - *port61621AgentSSL
+  command:
+  - /bin/bash
+  - -e
+  - -c
+  - apt-get update; apt-get -y install wget; wget https://raw.githubusercontent.com/mikeln/google-container-engine-dse/dsc21/scripts/dse.sh; chmod +x dse.sh; ./dse.sh
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
