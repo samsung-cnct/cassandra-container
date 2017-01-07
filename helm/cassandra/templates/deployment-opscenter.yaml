@@ -1,9 +1,13 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: {{ template "statefulname" . }}-op
+  name: {{ template "opscentername" . }}
   labels:
+    name: {{ template "opscentername" . }}
+    heritage: {{.Release.Service | quote }}
+    release: {{.Release.Name | quote }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    component: {{ template "opscentername" . }}
   annotations:
     "helm.sh/created": {{.Release.Time.Seconds | quote }}
 spec:
@@ -11,15 +15,20 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ template "statefulname" . }}-op
+        app: {{ template "opscentername" . }}
+        name: {{ template "opscentername" . }}
+        heritage: {{.Release.Service | quote }}
+        release: {{.Release.Name | quote }}
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        component: {{ template "opscentername" . }}
     spec:
       containers:
-      - name: {{ template "statefulname" . }}-op
+      - name: {{ template "opscentername" . }}
         image: "{{ .Values.opscenter.image.repository }}:{{ .Values.opscenter.image.tag }}"
         imagePullPolicy: {{ .Values.opscenter.image.pullPolicy }}
         env:
         - name: SEED_NODE_SERVICE
-          value: '{{ template "statefulname" . }}-0.{{ template "statefulname" . }}.{{ .Release.Namespace }}.svc.cluster.local'
+          value: '{{ template "cassandraname" . }}-0.{{ template "cassandraname" . }}.{{ .Release.Namespace }}.svc.cluster.local'
         - name: POD_NAME
           valueFrom:
             fieldRef:

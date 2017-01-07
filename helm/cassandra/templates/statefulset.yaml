@@ -1,28 +1,37 @@
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  name: {{ template "statefulname" . }}
+  name: {{ template "cassandraname" . }}
   labels:
+    name: {{ template "cassandraname" . }}
+    heritage: {{.Release.Service | quote }}
+    release: {{.Release.Name | quote }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    component: {{ template "cassandraname" . }}
   annotations:
     "helm.sh/created": {{.Release.Time.Seconds | quote }}
 spec:
-  serviceName: {{ template "statefulname" . }}
+  serviceName: {{ template "cassandraname" . }}
   replicas: {{ default 1 .Values.cassandra.replicaCount }}
   template:
     metadata:
       labels:
-        app: {{ template "statefulname" . }}
+        app: {{ template "cassandraname" . }}
+        name: {{ template "cassandraname" . }}
+        heritage: {{.Release.Service | quote }}
+        release: {{.Release.Name | quote }}
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        component: {{ template "cassandraname" . }}
     spec:
       containers:
-      - name: {{ template "statefulname" . }}
+      - name: {{ template "cassandraname" . }}
         image: "{{ .Values.cassandra.image.repository }}:{{ .Values.cassandra.image.tag }}"
         imagePullPolicy: {{ .Values.cassandra.image.pullPolicy }}
         env:
         - name: SEED_NODE_SERVICE
-          value: '{{ template "statefulname" . }}-0.{{ template "statefulname" . }}.{{ .Release.Namespace }}.svc.cluster.local'
+          value: '{{ template "cassandraname" . }}-0.{{ template "cassandraname" . }}.{{ .Release.Namespace }}.svc.cluster.local'
         - name: OPSCENTER_NAME
-          value: {{ template "statefulname" . }}-op
+          value: {{ template "opscentername" . }}
         - name: POD_NAME
           valueFrom:
             fieldRef:

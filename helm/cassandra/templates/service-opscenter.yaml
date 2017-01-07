@@ -1,9 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "statefulname" . }}-op
+  name: {{ template "opscentername" . }}
   labels:
+    name: {{ template "opscentername" . }}
+    heritage: {{.Release.Service | quote }}
+    release: {{.Release.Name | quote }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    component: {{ template "opscentername" . }}
+  annotations:
+    "helm.sh/created": {{.Release.Time.Seconds | quote }}
 spec:
   type: {{ .Values.serviceOpscenter.type }}
   ports: 
@@ -13,4 +19,4 @@ spec:
       name: {{ .name }}
     {{end}}
   selector:
-    app: {{ template "statefulname" . }}-op
+    app: {{ template "opscentername" . }}

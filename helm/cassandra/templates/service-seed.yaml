@@ -1,11 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "statefulname" . }}
+  name: {{ template "cassandraname" . }}
   labels:
+    name: {{ template "cassandraname" . }}
+    heritage: {{.Release.Service | quote }}
+    release: {{.Release.Name | quote }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    component: {{ template "cassandraname" . }}
+  annotations:
+    "helm.sh/created": {{.Release.Time.Seconds | quote }}
 spec:
-  #type: {{ .Values.serviceSeed.type }}
   clusterIP: None
   ports:
     {{ range .Values.serviceSeed.ports }}- port: {{ .port }}
@@ -14,4 +19,4 @@ spec:
       name: {{ .name }}
     {{end}}
   selector:
-    app: {{ template "statefulname" . }}
+    app: {{ template "cassandraname" . }}
