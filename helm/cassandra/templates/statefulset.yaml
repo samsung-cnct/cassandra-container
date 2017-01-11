@@ -42,10 +42,30 @@ spec:
               fieldPath: metadata.namespace
         ports: 
         {{ range .Values.cassandra.ports }}- containerPort: {{ .port }}
-        {{ end }}
+        {{ end -}}
         command: 
         {{ range .Values.cassandra.command}}- {{ . }}
-        {{ end }}
+        {{ end -}}
         resources:
-{{ toYaml .Values.cassandra.resources | indent 10}}
+{{ toYaml .Values.cassandra.resources | indent 10 }}
+        volumeMounts:
+        - name: cassandra-data
+          mountPath: /cassandra_data
+      volumes:
+      - name: cassandra-data
+{{- if eq .Values.cassandra.persistence.enabled  false }}
+        emptyDir: {}
+{{- end -}}
+{{- if .Values.cassandra.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: cassandra-data
+      annotations:
+        volume.beta.kubernetes.io/storage-class: {{ .Values.cassandra.persistence.storageClass | quote }}
+    spec:
+      accessModes: {{ .Values.cassandra.persistence.accessModes }}
+      resources:
+        requests:
+          storage: {{ .Values.cassandra.persistence.size | quote }}
+{{- end -}}
 

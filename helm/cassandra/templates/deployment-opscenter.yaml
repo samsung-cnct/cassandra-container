@@ -39,9 +39,9 @@ spec:
               fieldPath: metadata.namespace
         ports: 
         {{ range .Values.opscenter.ports }}- containerPort: {{ .port }}
-        {{ end }}
+        {{ end -}}
         command: 
         {{ range .Values.opscenter.command}}- {{ . }}
-        {{ end }}
+        {{ end -}}
         resources:
 {{ toYaml .Values.opscenter.resources | indent 10}}

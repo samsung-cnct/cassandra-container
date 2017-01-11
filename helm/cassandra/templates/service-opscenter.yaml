@@ -17,6 +17,6 @@ spec:
       targetPort: {{.targetPort }}
       protocol: {{ .protocol }}
       name: {{ .name }}
-    {{end}}
+    {{ end }}
   selector:
     app: {{ template "opscentername" . }}

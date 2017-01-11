@@ -99,6 +99,16 @@ cassandra:
   - -e
   - -c
   - apt-get update; apt-get -y install wget; wget https://raw.githubusercontent.com/mikeln/google-container-engine-dse/dsc21/scripts/dse.sh; chmod +x dse.sh; ./dse.sh
+  persistence:
+    enabled: false
+    storageClass: standard
+    accessModes:
+    - ReadWriteOnce
+    size: 5Gi
+  storageClass:
+    provisioner: kubernetes.io/gce-pd
+    parameters:
+      type: pd-ssd
 resources:
   limits:
     cpu: 100m
