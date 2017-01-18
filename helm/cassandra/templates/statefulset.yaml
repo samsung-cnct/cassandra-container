@@ -51,7 +51,14 @@ spec:
         volumeMounts:
         - name: cassandra-data
           mountPath: /cassandra_data
+        - name: cassandra-foo
+          mountPath: /etc/cassandra/foo
+          readOnly: true
       volumes:
+      - name: cassandra-foo
+        secret: 
+          secretName: {{ template "name" . }}
+          defaultMode: 256
       - name: cassandra-data
 {{- if eq .Values.cassandra.persistence.enabled  false }}
         emptyDir: {}
