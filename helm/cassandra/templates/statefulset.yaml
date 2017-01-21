@@ -54,6 +54,15 @@ spec:
         - name: cassandra-foo
           mountPath: /etc/cassandra/foo
           readOnly: true
+        lifecycle:
+          preStop:
+            exec:
+              command: 
+              - /bin/bash
+              - -e
+              - -c
+              - ./install-datastax-ubuntu-dsc21sec2/bin/dse/node_cleanup.sh
+      terminationGracePeriodSeconds: 90
       volumes:
       - name: cassandra-foo
         secret: 

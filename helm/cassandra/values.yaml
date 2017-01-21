@@ -79,7 +79,7 @@ opscenter:
   - /bin/bash
   - -e
   - -c
-  - apt-get update; apt-get -y install wget; wget https://raw.githubusercontent.com/mikeln/google-container-engine-dse/dsc21sec/scripts/opscenter.sh; chmod +x opscenter.sh; ./opscenter.sh
+  - apt-get update; apt-get -y install wget; wget https://raw.githubusercontent.com/mikeln/google-container-engine-dse/dsc21sec2/scripts/opscenter.sh; chmod +x opscenter.sh; ./opscenter.sh
 cassandra:
   name: cassandra
   replicaCount: 4
@@ -98,7 +98,7 @@ cassandra:
   - /bin/bash
   - -e
   - -c
-  - apt-get update; apt-get -y install wget; wget https://raw.githubusercontent.com/mikeln/google-container-engine-dse/dsc21sec/scripts/dse.sh; chmod +x dse.sh; ./dse.sh
+  - apt-get update; apt-get -y install wget; wget https://raw.githubusercontent.com/mikeln/google-container-engine-dse/dsc21sec2/scripts/dse.sh; chmod +x dse.sh; ./dse.sh
   persistence:
     enabled: false
     storageClass: standard
