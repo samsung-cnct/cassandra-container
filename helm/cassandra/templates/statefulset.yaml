@@ -58,11 +58,9 @@ spec:
           preStop:
             exec:
               command: 
-              - /bin/bash
-              - -e
-              - -c
-              - ./install-datastax-ubuntu-dsc21sec2/bin/dse/node_cleanup.sh
-      terminationGracePeriodSeconds: 90
+              {{ range .Values.cassandra.preStop.command}}- {{ . }}
+              {{ end }}
+      terminationGracePeriodSeconds: {{ default 30 .Values.cassandra.terminationGracePeriodSeconds }}
       volumes:
       - name: cassandra-foo
         secret: 
