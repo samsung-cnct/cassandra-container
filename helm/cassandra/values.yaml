@@ -69,8 +69,8 @@ opscenter:
   name: opscenter
   replicaCount: 1
   image:
-    repository: ubuntu
-    tag: 14.04
+    repository: quay.io/mikeln/opscenter_dsc21
+    tag: v0.0.6
     pullPolicy: IfNotPresent
   ports:
   - *port8888WebUI
@@ -79,13 +79,13 @@ opscenter:
   - /bin/bash
   - -e
   - -c
-  - apt-get update; apt-get -y install wget; wget https://raw.githubusercontent.com/mikeln/google-container-engine-dse/dsc21sec2/scripts/opscenter.sh; chmod +x opscenter.sh; ./opscenter.sh
+  - /usr/local/bin/init-opsc.sh
 cassandra:
   name: cassandra
   replicaCount: 4
   image:
-    repository: ubuntu
-    tag: 14.04
+    repository: quay.io/mikeln/cassandra_dsc21
+    tag: v0.0.6
     pullPolicy: IfNotPresent
   ports:
   - *port7000Huh
@@ -98,13 +98,13 @@ cassandra:
   - /bin/bash
   - -e
   - -c
-  - apt-get update; apt-get -y install wget; wget https://raw.githubusercontent.com/mikeln/google-container-engine-dse/dsc21sec2/scripts/dse.sh; chmod +x dse.sh; ./dse.sh
+  - /usr/local/bin/init-cass.sh
   preStop:
     command:
     - /bin/bash
     - -e
     - -c
-    - ./install-datastax-ubuntu-dsc21sec2/bin/dse/node_cleanup.sh
+    - /usr/local/bin/stop-cass.sh
   terminationGracePeriodSeconds: 90
   persistence:
     enabled: false
