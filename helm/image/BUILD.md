@@ -1,0 +1,43 @@
+# Container Image Build
+
+## Purpose
+Instructions on building the Cassandra and Opscenter Agent Docker images for a Kubernetes deployment.
+
+NOTE: These build instructions are for building from an OS-X machine.  They should work for any Linux setup, just omit any boot2docker items.
+
+## Prerequisites
+* docker
+	* boot2docker up
+	* export the vars
+	* $(boot2docker shellinit)
+* GNU Make
+
+## Build
+* set your Docker Image repository name.
+	* e.g. for dockerhub account myimage
+	
+	````
+	export DOCKER_REPO=myimage
+	````
+	
+	this will create images such as:
+	
+	````
+	myimage/cassandra_kub:v9
+	````
+
+### cassandra
+* cd cassnadra
+* edit Makefile and update the version number VERSION
+* make all - create local image
+* make push - push image to image repository
+* make clean - clean build artifacts and local image
+
+## Required For Git Push
+* Make sure Dockerfile is a copy of the current build Dockerfile.kub.slim (or whatever).  This file will be used to build in quay.io.  This is for production, and the prod version will be built when this is merged to the samsung-cnct git repo.  The image should then be in quay.io/samaungAG/<>  repo.   
+
+* Make sure you tag the git checkin with the same value as the VERSION in the Makefile (e.g. v21slim).  Quay.io uses the git tag to tag the build it creates.
+
+* The Makefile is used for development and local builds.   It is possible to create a prod build with it also by setting the Repo env to quay.io/samsung-cnct.
+
+
