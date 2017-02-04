@@ -14,7 +14,7 @@ echo seed_nodes_dns_names $seed_nodes_dns_names
 echo data_center_name $data_center_name
 echo opscenter_dns_name $opscenter_dns_name
 
-./scripts/dse.sh $cloud_type $seed_nodes_dns_names $data_center_name $opscenter_dns_name
+./scripts/dse.sh $cloud_type $seed_nodes_dns_names $data_center_name $opscenter_dns_name 
 
 
 #100 hours

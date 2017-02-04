@@ -67,7 +67,8 @@ echo "Waiting for OpsCenter to start..."
 sleep 30
 
 echo "Connecting OpsCenter to the cluster..."
-./scripts/opscenter/manage_existing_cluster.sh $seed_node_ip $opscenter_user  $opscenter_pw
+#./scripts/opscenter/manage_existing_cluster.sh $seed_node_ip $opscenter_user $opscenter_pw
+./scripts/opscenter/manage_existing_cluster.sh $seed_node_ip $admin_user $admin_pw
 
 echo "Changing the keyspace from SimpleStrategy to NetworkTopologyStrategy."
 ./scripts/opscenter/configure_opscenter_keyspace.sh

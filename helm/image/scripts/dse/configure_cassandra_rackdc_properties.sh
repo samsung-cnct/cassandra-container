@@ -38,7 +38,12 @@ cloud_type="$1"
 dc="$2"
 rack=`get_rack $cloud_type`
 
+#
+# should only present on a DSE install image (vs DSC21)
+file=/etc/dse/cassandra/cassandra-rackdc.properties
+if [[ ! -s $file ]]; then
 file=/etc/cassandra/cassandra-rackdc.properties
+fi
 
 date=$(date +%F)
 backup="$file.$date"

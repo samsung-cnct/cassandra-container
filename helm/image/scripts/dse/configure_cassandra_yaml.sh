@@ -23,7 +23,11 @@ auto_bootstrap="false"
 authenticator="PasswordAuthenticator"
 authorizer="CassandraAuthorizer"
 
+# should only be present on DSE image (not DSC)
+file=/etc/dse/cassandra/cassandra.yaml
+if [[ ! -s $file ]]; then
 file=/etc/cassandra/cassandra.yaml
+fi
 
 date=$(date +%F)
 backup="$file.$date"

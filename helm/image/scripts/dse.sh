@@ -86,8 +86,8 @@ echo node_broadcast_ip \'$node_broadcast_ip\'
 echo node_ip \'$node_ip\'
 echo opscenter_ip \'$opscenter_ip\'
 
-./scripts/dse/configure_cassandra_rackdc_properties.sh $cloud_type $data_center_name
-./scripts/dse/configure_cassandra_yaml.sh $node_ip $node_broadcast_ip $seed_node_ip
+./scripts/dse/configure_cassandra_rackdc_properties.sh $cloud_type $data_center_name 
+./scripts/dse/configure_cassandra_yaml.sh $node_ip $node_broadcast_ip $seed_node_ip 
 ./scripts/dse/start_dse.sh
 echo "Waiting for Cassandra to start...(datastax recommends 2 min for each node)"
 sleep 120
