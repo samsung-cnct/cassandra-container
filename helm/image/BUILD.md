@@ -3,13 +3,10 @@
 ## Purpose
 Instructions on building the Cassandra and Opscenter Agent Docker images for a Kubernetes deployment.
 
-NOTE: These build instructions are for building from an OS-X machine.  They should work for any Linux setup, just omit any boot2docker items.
+NOTE: These build instructions are for building from an OS-X machine.  They should work for any Linux setup.
 
 ## Prerequisites
-* docker
-	* boot2docker up
-	* export the vars
-	* $(boot2docker shellinit)
+* docker = boot2docker, docker-machine, or more current docker
 * GNU Make
 
 ## Build
@@ -17,27 +14,39 @@ NOTE: These build instructions are for building from an OS-X machine.  They shou
 	* e.g. for dockerhub account myimage
 	
 	````
-	export DOCKER_REPO=myimage
+	export DOCKER_REPO=quay.io/myrepo
 	````
 	
 	this will create images such as:
 	
 	````
-	myimage/cassandra_kub:v9
+	quay.io/myrepo/cassandra_dsc21:v1.0.0
 	````
 
-### cassandra
-* cd cassnadra
+### cassandra, opscenter
 * edit Makefile and update the version number VERSION
-* make all - create local image
-* make push - push image to image repository
+	* DSC_IMG_VERSION := v1.0.3
+	* DSE_IMG_VERSION := v1.0.11
+* make all - create all images locally
+* make push - push images to image repository
 * make clean - clean build artifacts and local image
 
-## Required For Git Push
-* Make sure Dockerfile is a copy of the current build Dockerfile.kub.slim (or whatever).  This file will be used to build in quay.io.  This is for production, and the prod version will be built when this is merged to the samsung-cnct git repo.  The image should then be in quay.io/samaungAG/<>  repo.   
+### Dockerfile Images
+* Dockerfile.dsc-dsc - cassandra_dsc21
+* Dockerfile.dsc-ops - opscenter_dsc21
+* Dockerfile.dsc-dsc-sec - cassandra_dsc21_sec
+* Dockerfile.dsc-ops-sec - opscenter_dsc21_sec
+* Dockerfile.dse-dse - cassandra_dse
+* Dockerfile.dse-ops - opscenter_dse
+* Dockerfile.dse-dse-sec - cassandra_dse_sec
+* Dockerfile.dse-ops-sec - opscenter_dse_sec
 
-* Make sure you tag the git checkin with the same value as the VERSION in the Makefile (e.g. v21slim).  Quay.io uses the git tag to tag the build it creates.
+### Make Targets
+* all: build-dsc build-dse build-dsc-sec build-dse-sec
+* push: push-dsc push-dse push-dsc-sec push-dse-sec
+* clean: clean-dsc clean-dse clean-dsc-sec clean-dse-sec
 
-* The Makefile is used for development and local builds.   It is possible to create a prod build with it also by setting the Repo env to quay.io/samsung-cnct.
+
+
 
 
