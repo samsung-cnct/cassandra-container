@@ -14,8 +14,8 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886 \
     vim-tiny \
     dnsutils \
     adduser curl lsb-base procps zlib1g gzip sysstat ntp bash tree \
-    python python-support \
-    apt-transport-https \
+#    python python-support \
+#    apt-transport-https \
     unzip \
 # from install_datastax_ubuntu/os/install_javea.sh
     software-properties-common \
@@ -27,7 +27,6 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886 \
     oracle-java8-installer \
 # some comment about java installs failing sometimes...a 2nd try fixes it.
 #    oracle-java8-installer \
-    && java -version \
 #
 # cassandra next install_datastax_ubuntu/opscenter/install.sh
 #
@@ -36,8 +35,8 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886 \
     && DEBIAN_FRONTEND=noninteractive apt-get update -y \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     opscenter=6.0.4 \
-    && DEBIAN_FRONTEND=noninteractive apt-get remove -y --purge wget \
-    && DEBIAN_FRONTEND=noninteractive apt-get autoremove -y \
+    #    && DEBIAN_FRONTEND=noninteractive apt-get remove -y --purge wget \
+    #    && DEBIAN_FRONTEND=noninteractive apt-get autoremove -y \
     && DEBIAN_FRONTEND=noninteractive apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*  \
     && echo "------";java -version \
     && echo "-------"

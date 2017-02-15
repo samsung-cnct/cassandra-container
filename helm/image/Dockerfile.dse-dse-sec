@@ -1,9 +1,11 @@
 ##
-##    Cassandra (kubernetes)
+##    Datastax Enterprise Cassandra (kubernetes)
 ##
 ##
 FROM ubuntu:14.04
 MAINTAINER Mikel Nelson <mikel.n@samsung.com>
+
+ENV dse_ver 5.0.3-1
 
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886 \
     && DEBIAN_FRONTEND=noninteractive apt-get update -y \
@@ -33,39 +35,47 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886 \
 #
 # cassandra next install_datastax_ubuntu/dse/install.sh
 #
-    && echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list \
+    && echo "deb http://datastax%40google.com:8GdeeVT2s7zi@debian.datastax.com/enterprise stable main" | sudo tee -a /etc/apt/sources.list.d/datastax.sources.list \
     && curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add - \
     && DEBIAN_FRONTEND=noninteractive apt-get update -y \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    dsc21=2.1.10-1 \
-    cassandra=2.1.10  \
-    cassandra-tools=2.1.10 \
+# dse_version=5.0.3-1
+    dse-full=$dse_ver \
+    dse=$dse_ver \
+    dse-hive=$dse_ver \
+    dse-pig=$dse_ver \
+    dse-demos=$dse_ver \
+    dse-libsolr=$dse_ver \
+    dse-libtomcat=$dse_ver \
+    dse-libsqoop=$dse_ver \
+    dse-liblog4j=$dse_ver \
+    dse-libmahout=$dse_ver \
+    dse-libhadoop-native=$dse_ver \
+    dse-libcassandra=$dse_ver \
+    dse-libhive=$dse_ver \
+    dse-libpig=$dse_ver \
+    dse-libhadoop=$dse_ver \
+    dse-libspark=$dse_ver \
+    dse-libhadoop2-client-native=$dse_ver \
+    dse-libgraph=$dse_ver \
+    dse-libhadoop2-client=$dse_ver \
 # stops the service immeadieately since we will reconfigure
-    && service cassandra stop \
+#    && service cassandra stop \
     && rm -rf /var/lib/cassandra/data/system/* \
-    && echo "1------" \
-    && java -version \
-    && echo "1-------" \
 # opscenter agent install
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     sysstat \
     procps \
-    datastax-agent=5.2.5 \
-    && echo "2------" \
-    && java -version \
-    && echo "2-------" \
+# opscenter_version=6.0.4
+    datastax-agent=6.0.4 \
+#
+#  NOTE: this line also deletes all of java in this install... not sure why yet
 #    && DEBIAN_FRONTEND=noninteractive apt-get remove -y --purge wget \
 #    && echo "3------" \
 #    && java -version \
 #    && echo "3-------" \
     && DEBIAN_FRONTEND=noninteractive apt-get autoremove -y \
-    && echo "4------" \
-    && java -version \
-    && echo "4-------" \
     && DEBIAN_FRONTEND=noninteractive apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-    && echo "5------" \
-    && java -version \
-    && echo "5------" \
 # install creates a user
     && chown cassandra /mnt \ 
     && chgrp cassandra /mnt
@@ -79,7 +89,7 @@ RUN curl -v -O http://stedolan.github.io/jq/download/linux64/jq \
 #
 # Do add all the scripts needed for kubernetes setup and starting
 #
-COPY init-cass.sh /usr/local/bin/init-cass.sh
+COPY init-cass-sec.sh /usr/local/bin/init-cass.sh
 COPY stop-cass.sh /usr/local/bin/stop-cass.sh
 COPY scripts/ /scripts/
 

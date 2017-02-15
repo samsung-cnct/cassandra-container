@@ -5,7 +5,7 @@ echo "++++++++++ Starting OpsCenter Container ++++++++++++"
 
 cloud_type="gke"
 seed_nodes_dns_names=$SEED_NODE_SERVICE
-secure_app="no"
+secure_app="yes"
 
 echo "Configuring OpsCenter with the settings:"
 echo cloud_type $cloud_type

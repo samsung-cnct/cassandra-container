@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
 echo "Running install-datastax/bin/opscenter.sh dsc21"
-
-cloud_type=$1
-seed_nodes_dns_names=$2
+ 
+cloud_type=${1?"Missing cloud type arg 1"}
+seed_nodes_dns_names=${2?"Missing seed node names arg 2"}
+secure_app=${3:-"yes"}
 #
 # read passwords off the secret location
 #
@@ -22,11 +23,16 @@ fi
 # Assuming only one seed is passed in for now
 seed_node_dns_name=$seed_nodes_dns_names
 
+echo "Waiting for IPs for: $seed_nodes_dns_names ..."
 # On GKE we resolve to a private IP.
 # On AWS and Azure this gets the public IP.
 # On GCE it resolves to a private IP that is globally routeable in GCE.
 if [[ $cloud_type == "gke" ]]; then
-  seed_node_ip=`getent hosts $seed_node_dns_name | awk '{ print $1w }'`
+  # If the IP isn't up yet it will resolve to "" on GKE
+  seed_node_ip=""
+  while [ "${seed_node_ip}" == "" ]; do
+    seed_node_ip=`getent hosts $seed_node_dns_name | awk '{ print $1w }'`
+  done
 elif [[ $cloud_type == "gce" ]]; then
   # If the IP isn't up yet it will resolve to "" on GCE
   seed_node_ip=""
@@ -66,9 +72,9 @@ echo "Starting OpsCenter..."
 echo "Waiting for OpsCenter to start..."
 sleep 30
 
-echo "Connecting OpsCenter to the cluster..."
-#./scripts/opscenter/manage_existing_cluster.sh $seed_node_ip $opscenter_user $opscenter_pw
-./scripts/opscenter/manage_existing_cluster.sh $seed_node_ip $admin_user $admin_pw
+#echo "Connecting OpsCenter to the cluster... $seed_node_ip $opscenter_user $opscenter_pw"
+echo "Connecting OpsCenter to the cluster... $seed_node_ip"
+./scripts/opscenter/manage_existing_cluster.sh "$seed_node_ip" "$opscenter_user" "$opscenter_pw" "$secure_app"
 
 echo "Changing the keyspace from SimpleStrategy to NetworkTopologyStrategy."
 ./scripts/opscenter/configure_opscenter_keyspace.sh

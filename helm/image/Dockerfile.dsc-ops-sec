@@ -14,8 +14,8 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886 \
     vim-tiny \
     dnsutils \
     adduser curl lsb-base procps zlib1g gzip sysstat ntp bash tree \
-    python python-support \
-    apt-transport-https \
+#    python python-support \
+#    apt-transport-https \
     unzip \
 # from install_datastax_ubuntu/os/install_javea.sh
     software-properties-common \
@@ -27,8 +27,6 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886 \
     oracle-java8-installer \
 # some comment about java installs failing sometimes...a 2nd try fixes it.
 #    oracle-java8-installer \
-    && java -version \
-#
 # cassandra next install_datastax_ubuntu/opscenter/install.sh
 #
     && echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/datastax.community.list \
@@ -44,14 +42,12 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886 \
 #
 # Do add all the scripts needed for kubernetes setup and starting
 #
-COPY init-opsc.sh /usr/local/bin/init-opsc.sh
+COPY init-opsc-sec.sh /usr/local/bin/init-opsc.sh
 COPY scripts/ /scripts/
 
 RUN chmod 755 /usr/local/bin/init-opsc.sh \
    && chmod -R 755 /scripts
 #
-#EXPOSE 7199 7000 7001 9160 9042
-#EXPOSE 61620 61621 50031
 EXPOSE 61620 7199
 EXPOSE 8888
 USER root

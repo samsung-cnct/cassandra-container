@@ -1,13 +1,13 @@
 #!/bin/bash
 #
 # 
-echo "++++++++++ Starting Cassandra Container ++++++++++++"
+echo "++++++++++ Starting Cassandra Container With Security ++++++++++++"
 
 cloud_type="gke"
 seed_nodes_dns_names=$SEED_NODE_SERVICE
 data_center_name="dc0"
 opscenter_dns_name=$OPSCENTER_NAME
-secure_app="no"
+secure_app="yes"
 
 echo "Configuring nodes with the settings:"
 echo cloud_type $cloud_type

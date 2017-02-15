@@ -7,4 +7,11 @@ Dockerfile.*
 Makefile
 README.md
 BUILD.md
-cassandra_dsc
+cassandra_dsc21
+cassandra_dsc21_sec
+cassandra_dse
+cassandra_dse_sec
+opscenter_dsc21
+opscenter_dsc21_sec
+opscenter_dse
+opscenter_dse_sec

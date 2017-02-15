@@ -27,32 +27,60 @@ if [ $? -ne 0 ];then
     exit 1
 fi
 
+#
+# use this to wait for cluster
+#
+# allow 60 sec 30*2sec retries
+RETRIES=30
 echo "Found nodetool at $NODETOOL_CMD"
 $NODETOOL_CMD status
-if [ $? -ne 0 ];then
-    echo "ERROR - could not nodetool status"
-    exit 1
-fi
+while [ $? -ne 0 ];do
+    RETRIES=$((RETRIES-1))
+    if [ $RETRIES -gt 0 ];then
+      echo "ERROR - could not nodetool status $RETRIES ...waiting"
+      sleep 2
+      $NODETOOL_CMD status
+    else
+      echo "ERROR - could not nodetool status after many retries"
+      exit 2
+    fi
+done
 
 #---------------------------------------------
 # determine if these changes have already occured...each node will attempt.   Check for ability to login via default superuser.  If that fails check for new superuser.  IF that fails...then we have a problem.
+# allos 2 min 24*5sec of retries
+RETRIES=24
 echo "Checking if user updates have been performed."
 $CQLSH_CMD -u cassandra -p cassandra -e "list users;"
-if [ $? -ne 0 ];then
-    echo "WARN: Check for user update.  May have been done by another node already.  This is OK."
+#if [ $? -ne 0 ];then
+while [ $? -ne 0 ];do
+    echo "WARN: Check $RETRIES for user update.  May have been done by another node already.  This is OK."
     $CQLSH_CMD -u $admin_user -p $admin_pw -e "list users;"
     if [ $? -ne 0 ];then
-        echo "ERROR: Check for user update.  Can not access with either superuser."
-        exit 2
+        echo "ERROR: Check $RETRIES for user update.  Can not access with either superuser."
+        RETRIES=$((RETRIES-1))
+        if [ $RETRIES -gt 0 ];then
+           sleep 5
+           $CQLSH_CMD -u cassandra -p cassandra -e "list users;"
+       else
+           echo "ERROR: Repairing Node."
+           $NODETOOL_CMD cleanup 
+           if [ $? -ne 0 ];then
+              echo "ERROR - could not nodetool repair this node"
+           fi
+           exit 2
+       fi
+    else
+       echo "Changes appear to be already performed.  Running node repair."
+       $NODETOOL_CMD repair 
+       if [ $? -ne 0 ];then
+           echo "WARN - could not nodetool repair this node"
+       fi
+       exit 0
+       break
     fi
-    echo "Changes appear to be already performed.  Running node cleanup as recommended by datastax."
-    $NODETOOL_CMD cleanup 
-    if [ $? -ne 0 ];then
-        echo "ERROR - could not nodetool cleanup this node"
-    fi
-    echo "Exiting script"
-    exit 0
-fi
+done
+#fi
 #---------------------------------------------
 # alter keyspace system_auth with replication = { 'class' : 'NetworkTopologyStrategy', 'dc0' : 3 }
 # recommended by Datastax docs.

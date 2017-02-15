@@ -11,4 +11,4 @@ maintainers:
 name: cassandra
 sources:
 - https://github.com/mikeln/cassandra-container/helm/cassandra
-version: 0.1.2
+version: 0.1.3

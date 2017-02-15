@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
-echo "Running scripts/dse.sh for dsc21"
+echo "Running scripts/dse.sh"
 
 cloud_type=$1
 seed_nodes_dns_names=$2
 data_center_name=$3
 opscenter_dns_name=$4
+secure_app=${5:-"yes"}
 
 #
 # read passwords off the secret location
@@ -86,16 +87,19 @@ echo node_broadcast_ip \'$node_broadcast_ip\'
 echo node_ip \'$node_ip\'
 echo opscenter_ip \'$opscenter_ip\'
 
-./scripts/dse/configure_cassandra_rackdc_properties.sh $cloud_type $data_center_name 
-./scripts/dse/configure_cassandra_yaml.sh $node_ip $node_broadcast_ip $seed_node_ip 
+./scripts/dse/configure_cassandra_rackdc_properties.sh "$cloud_type" "$data_center_name "
+./scripts/dse/configure_cassandra_yaml.sh "$node_ip" "$node_broadcast_ip" "$seed_node_ip" "$secure_app"
 ./scripts/dse/start_dse.sh
-echo "Waiting for Cassandra to start...(datastax recommends 2 min for each node)"
-sleep 120
-# have to lock down the users first then start opscenter
-./scripts/dse/add_admin_users.sh $admin_user $admin_pw $opscenter_user $opscenter_pw $workr_user $workr_pw
+
+if [ "$secure_app" == "yes" ];then
+  #echo "Waiting for Cassandra to start...(datastax recommends 2 min for each node)"
+  #sleep 120
+  # have to lock down the users first then start opscenter
+  ./scripts/dse/add_admin_users.sh "$admin_user" "$admin_pw" "$opscenter_user" "$opscenter_pw" "$workr_user" "$workr_pw"
+fi
 #
 # now we have the users setup...start agent for opscenter
-./scripts/dse/configure_agent_address_yaml.sh $node_ip $node_broadcast_ip $opscenter_ip $admin_user $admin_pw $admin_user $admin_pw
+./scripts/dse/configure_agent_address_yaml.sh "$node_ip" "$node_broadcast_ip" "$opscenter_ip" "$admin_user" "$admin_pw" "$admin_user" "$admin_pw" "$secure_app"
 ./scripts/dse/start_agent.sh
 
 # It looks like DSE might be setting the keepalive to 300.  Need to confirm.

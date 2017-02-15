@@ -69,8 +69,8 @@ opscenter:
   name: opscenter
   replicaCount: 1
   image:
-    repository: quay.io/mikeln/opscenter_dsc21
-    tag: v0.0.6
+    repository: quay.io/mikeln/opscenter_dse
+    tag: v1.0.11
     pullPolicy: IfNotPresent
   ports:
   - *port8888WebUI
@@ -82,10 +82,10 @@ opscenter:
   - /usr/local/bin/init-opsc.sh
 cassandra:
   name: cassandra
-  replicaCount: 4
+  replicaCount: 6
   image:
-    repository: quay.io/mikeln/cassandra_dsc21
-    tag: v0.0.6
+    repository: quay.io/mikeln/cassandra_dse
+    tag: v1.0.11
     pullPolicy: IfNotPresent
   ports:
   - *port7000Huh
@@ -105,7 +105,7 @@ cassandra:
     - -e
     - -c
     - /usr/local/bin/stop-cass.sh
-  terminationGracePeriodSeconds: 90
+  terminationGracePeriodSeconds: 60
   persistence:
     enabled: false
     storageClass: standard
