@@ -70,7 +70,7 @@ opscenter:
   replicaCount: 1
   image:
     repository: quay.io/mikeln/opscenter_dse_sec
-    tag: v2.0.0
+    tag: v2.0.2
     pullPolicy: IfNotPresent
   ports:
   - *port8888WebUI
@@ -85,7 +85,7 @@ cassandra:
   replicaCount: 6
   image:
     repository: quay.io/mikeln/cassandra_dse_sec
-    tag: v2.0.0
+    tag: v2.0.2
     pullPolicy: IfNotPresent
   ports:
   - *port7000Huh

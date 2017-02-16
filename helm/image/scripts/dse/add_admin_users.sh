@@ -64,19 +64,20 @@ while [ $? -ne 0 ];do
            sleep 5
            $CQLSH_CMD -u cassandra -p cassandra -e "list users;"
        else
-           echo "ERROR: Repairing Node."
-           $NODETOOL_CMD cleanup 
-           if [ $? -ne 0 ];then
-              echo "ERROR - could not nodetool repair this node"
-           fi
+           echo "ERROR: Unable to use old or new admin."
+#           $NODETOOL_CMD cleanup 
+#           if [ $? -ne 0 ];then
+#              echo "ERROR - could not nodetool repair this node"
+#           fi
            exit 2
        fi
     else
-       echo "Changes appear to be already performed.  Running node repair."
-       $NODETOOL_CMD repair 
-       if [ $? -ne 0 ];then
-           echo "WARN - could not nodetool repair this node"
-       fi
+       echo "Changes appear to be already performed."
+#       echo "Running node repair."
+#       $NODETOOL_CMD repair 
+#       if [ $? -ne 0 ];then
+#           echo "WARN - could not nodetool repair this node"
+#       fi
        exit 0
        break
     fi
