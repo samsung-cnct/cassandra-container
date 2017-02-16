@@ -7,6 +7,7 @@ seed_nodes_dns_names=$2
 data_center_name=$3
 opscenter_dns_name=$4
 secure_app=${5:-"yes"}
+rack_name=${6:-"rack0"}
 
 #
 # read passwords off the secret location
@@ -82,12 +83,13 @@ fi
 echo "Configuring nodes with the settings:"
 echo cloud_type \'$cloud_type\'
 echo data_center_name \'$data_center_name\'
+echo rack_name \'$rack_name\'
 echo seed_node_ip \'$seed_node_ip\'
 echo node_broadcast_ip \'$node_broadcast_ip\'
 echo node_ip \'$node_ip\'
 echo opscenter_ip \'$opscenter_ip\'
 
-./scripts/dse/configure_cassandra_rackdc_properties.sh "$cloud_type" "$data_center_name "
+./scripts/dse/configure_cassandra_rackdc_properties.sh "$cloud_type" "$data_center_name" "$rack_name"
 ./scripts/dse/configure_cassandra_yaml.sh "$node_ip" "$node_broadcast_ip" "$seed_node_ip" "$secure_app"
 ./scripts/dse/start_dse.sh
 
@@ -95,7 +97,7 @@ if [ "$secure_app" == "yes" ];then
   #echo "Waiting for Cassandra to start...(datastax recommends 2 min for each node)"
   #sleep 120
   # have to lock down the users first then start opscenter
-  ./scripts/dse/add_admin_users.sh "$admin_user" "$admin_pw" "$opscenter_user" "$opscenter_pw" "$workr_user" "$workr_pw"
+  ./scripts/dse/add_admin_users.sh "$admin_user" "$admin_pw" "$opscenter_user" "$opscenter_pw" "$workr_user" "$workr_pw" "$data_center_name"
 fi
 #
 # now we have the users setup...start agent for opscenter

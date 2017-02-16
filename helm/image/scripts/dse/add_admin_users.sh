@@ -11,6 +11,7 @@ opscenter_user=${3?"Missing opscenter id arg 3"}
 opscenter_pw=${4?"Missing opscenter pw arg 4"}
 workr_user=${5?"Missing workr id arg 5"}
 workr_pw=${6?"Missing workr pw arg 6"}
+data_center_name=${7:-"dc0"}
 
 CQLSH_CMD=$(which cqlsh)
 if [ $? -ne 0 ];then
@@ -86,7 +87,8 @@ done
 # recommended by Datastax docs.
 #
 echo "Altering Replication"
-$CQLSH_CMD -u cassandra -p cassandra -e "alter keyspace system_auth with replication = { 'class' : 'NetworkTopologyStrategy', 'dc0' : 3 };"
+#$CQLSH_CMD -u cassandra -p cassandra -e "alter keyspace system_auth with replication = { 'class' : 'NetworkTopologyStrategy', 'dc0' : 3 };"
+$CQLSH_CMD -u cassandra -p cassandra -e "alter keyspace system_auth with replication = { 'class' : 'NetworkTopologyStrategy', '$data_center_name' : 3 };"
 if [ $? -ne 0 ];then
     echo "ERROR: Unable to alter replication"
     exit 2
@@ -143,7 +145,8 @@ fi
 # NOTE: have to create the keyspace first BEFORE we can give rights to it...
 #       ASSUME the opscenter keyspace is "OpsCenter"  (with the quotes)
 #
-$CQLSH_CMD -u $admin_user -p $admin_pw -e "create keyspace if not exists \"OpsCenter\" with replication = { 'class' : 'NetworkTopologyStrategy', 'dc0' : 2 };"
+#$CQLSH_CMD -u $admin_user -p $admin_pw -e "create keyspace if not exists \"OpsCenter\" with replication = { 'class' : 'NetworkTopologyStrategy', 'dc0' : 2 };"
+$CQLSH_CMD -u $admin_user -p $admin_pw -e "create keyspace if not exists \"OpsCenter\" with replication = { 'class' : 'NetworkTopologyStrategy', '$data_center_name' : 2 };"
 if [ $? -ne 0 ];then
     echo "ERROR: Unable to create new OpsCenter keyspace"
     exit 3

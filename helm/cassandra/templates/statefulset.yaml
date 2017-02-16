@@ -32,6 +32,10 @@ spec:
           value: '{{ template "cassandraname" . }}-0.{{ template "cassandraname" . }}.{{ .Release.Namespace }}.svc.cluster.local'
         - name: OPSCENTER_NAME
           value: {{ template "opscentername" . }}
+        - name: DATACENTER_NAME
+          value: {{ .Values.cassandra.datacenter }}
+        - name: RACK_NAME
+          value: {{ .Values.cassandra.rack }}
         - name: POD_NAME
           valueFrom:
             fieldRef:
