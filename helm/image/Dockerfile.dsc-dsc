@@ -1,0 +1,81 @@
+##
+##    Cassandra (kubernetes)
+##
+##
+FROM ubuntu:14.04
+MAINTAINER Mikel Nelson <mikel.n@samsung.com>
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886 \
+    && DEBIAN_FRONTEND=noninteractive apt-get update -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    curl \
+    wget \
+    sudo \
+    vim-tiny \
+    dnsutils \
+    adduser curl lsb-base procps zlib1g gzip sysstat ntp bash tree \
+    python python-support \
+    apt-transport-https \
+    unzip \
+# from install_datastax_ubuntu/os/install_javea.sh
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common \
+    && add-apt-repository -y ppa:webupd8team/java \
+    && DEBIAN_FRONTEND=noninteractive apt-get update -y \
+    && echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections \
+    && echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    oracle-java8-installer \
+# some comment about java installs failing sometimes...a 2nd try fixes it.
+#    oracle-java8-installer \
+#
+# cassandra next install_datastax_ubuntu/dse/install.sh
+#
+    && echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list \
+    && curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add - \
+    && DEBIAN_FRONTEND=noninteractive apt-get update -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    dsc21=2.1.10-1 \
+    cassandra=2.1.10  \
+    cassandra-tools=2.1.10 \
+# stops the service immeadieately since we will reconfigure
+    && service cassandra stop \
+    && rm -rf /var/lib/cassandra/data/system/* \
+# opscenter agent install
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    sysstat \
+    procps \
+    datastax-agent=5.2.5 \
+#    && DEBIAN_FRONTEND=noninteractive apt-get remove -y --purge wget \
+#    && echo "3------" \
+#    && java -version \
+#    && echo "3-------" \
+    && DEBIAN_FRONTEND=noninteractive apt-get autoremove -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && echo "5------" \
+    && java -version \
+    && echo "5------" \
+# install creates a user
+    && chown cassandra /mnt \ 
+    && chgrp cassandra /mnt
+#
+# install jq for json parsing...no apt pkg for this yet
+#  (need this here, and not in the init.sh so it can stand alone)
+#
+RUN curl -v -O http://stedolan.github.io/jq/download/linux64/jq \
+    && chmod +x ./jq \
+    && sudo mv ./jq /usr/bin
+#
+# Do add all the scripts needed for kubernetes setup and starting
+#
+COPY init-cass.sh /usr/local/bin/init-cass.sh
+COPY stop-cass.sh /usr/local/bin/stop-cass.sh
+COPY scripts/ /scripts/
+
+RUN chmod 755 /usr/local/bin/init-cass.sh \
+   && chmod 755 /usr/local/bin/stop-cass.sh \
+   && chmod -R 755 /scripts
+#
+EXPOSE 7199 7000 7001 9160 9042
+EXPOSE 61620 61621 50031
+USER root
+# NO DEFAULT CMD

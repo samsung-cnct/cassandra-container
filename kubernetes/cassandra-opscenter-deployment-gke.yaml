@@ -18,7 +18,7 @@ spec:
           nodePort: 30888
     selector:
         name: opscenter
-    type: NodePort
+    type: LoadBalancer
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -70,8 +70,8 @@ spec:
                 valueFrom:
                   fieldRef:
                     fieldPath: metadata.namespace
-        nodeSelector:
-           kraken-node: node-001 
+        #nodeSelector:
+        #   kraken-node: node-001 
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment 
@@ -79,7 +79,7 @@ metadata:
     name: cassandra
     namespace: cassandra
 spec:
-  replicas: 8
+  replicas: 5
   template:
     metadata:
         labels:
@@ -87,7 +87,7 @@ spec:
     spec:
         containers:
           - name: cassandra
-            image: quay.io/mikeln/cassandra_kub:v29slim
+            image: quay.io/mikeln/cassandra_kub:v30slim
             resources:
                 limits:
                     cpu: 1
@@ -127,8 +127,8 @@ spec:
         volumes:
           - name: data
             emptyDir: {}
-        nodeSelector:
-          kraken-node: autoscaled
+    #    nodeSelector:
+    #      kraken-node: autoscaled
 ---
 apiVersion: v1
 kind: Service
@@ -141,10 +141,11 @@ spec:
     ports:
         - name: native
           port: 9042
-          targetPort: 30042
+          targetPort: 9042
+#          targetPort: 30042
         - name: thrift
           port: 9160
-          targetPort: 30160
+#          targetPort: 30160
     selector:
         name: cassandra
-    type: NodePort
+    type: LoadBalancer

@@ -1,0 +1,70 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "statefulname" . }}-op
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+  annotations:
+    "helm.sh/created": {{.Release.Time.Seconds | quote }}
+spec:
+  replicas: {{ default 1 .Values.opscenter.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "statefulname" . }}-op
+    spec:
+      containers:
+      - name: {{ template "statefulname" . }}-op
+        image: "{{ .Values.opscenter.image.repository }}:{{ .Values.opscenter.image.tag }}"
+        imagePullPolicy: {{ .Values.opscenter.image.pullPolicy }}
+        env:
+        - name: SEED_NODE_SERVICE
+          value: {{ template "statefulname" . }}-sd
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        ports: 
+        {{ range .Values.opscenter.ports }}- containerPort: {{ .port }}
+        {{ end }}
+        command: 
+        {{ range .Values.opscenter.command}}- {{ . }}
+        {{ end }}
+        resources:
+{{ toYaml .Values.opscenter.resources | indent 10}}
+  replicas: {{ default 1 .Values.cassandra.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "statefulname" . }}
+    spec:
+      containers:
+      - name: {{ template "statefulname" . }}
+        image: "{{ .Values.cassandra.image.repository }}:{{ .Values.cassandra.image.tag }}"
+        imagePullPolicy: {{ .Values.cassandra.image.pullPolicy }}
+        env:
+        - name: SEED_NODE_SERVICE
+          value: {{ template "statefulname" . }}-sd
+        - name: OPSCENTER_NAME
+          value: {{ template "statefulname" . }}-op
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        ports: 
+        {{ range .Values.cassandra.ports }}- containerPort: {{ .port }}
+        {{ end }}
+        command: 
+        {{ range .Values.cassandra.command}}- {{ . }}
+        {{ end }}
+        resources:
+{{ toYaml .Values.cassandra.resources | indent 10}}
+

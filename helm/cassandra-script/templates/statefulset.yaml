@@ -1,0 +1,85 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: {{ template "cassandraname" . }}
+  labels:
+    name: {{ template "cassandraname" . }}
+    heritage: {{.Release.Service | quote }}
+    release: {{.Release.Name | quote }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    component: {{ template "cassandraname" . }}
+  annotations:
+    "helm.sh/created": {{.Release.Time.Seconds | quote }}
+spec:
+  serviceName: {{ template "cassandraname" . }}
+  replicas: {{ default 1 .Values.cassandra.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "cassandraname" . }}
+        name: {{ template "cassandraname" . }}
+        heritage: {{.Release.Service | quote }}
+        release: {{.Release.Name | quote }}
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        component: {{ template "cassandraname" . }}
+    spec:
+      containers:
+      - name: {{ template "cassandraname" . }}
+        image: "{{ .Values.cassandra.image.repository }}:{{ .Values.cassandra.image.tag }}"
+        imagePullPolicy: {{ .Values.cassandra.image.pullPolicy }}
+        env:
+        - name: SEED_NODE_SERVICE
+          value: '{{ template "cassandraname" . }}-0.{{ template "cassandraname" . }}.{{ .Release.Namespace }}.svc.cluster.local'
+        - name: OPSCENTER_NAME
+          value: {{ template "opscentername" . }}
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        ports: 
+        {{ range .Values.cassandra.ports }}- containerPort: {{ .port }}
+        {{ end -}}
+        command: 
+        {{ range .Values.cassandra.command}}- {{ . }}
+        {{ end -}}
+        resources:
+{{ toYaml .Values.cassandra.resources | indent 10 }}
+        volumeMounts:
+        - name: cassandra-data
+          mountPath: /cassandra_data
+        - name: cassandra-foo
+          mountPath: /etc/cassandra/foo
+          readOnly: true
+        lifecycle:
+          preStop:
+            exec:
+              command: 
+              {{ range .Values.cassandra.preStop.command}}- {{ . }}
+              {{ end }}
+      terminationGracePeriodSeconds: {{ default 30 .Values.cassandra.terminationGracePeriodSeconds }}
+      volumes:
+      - name: cassandra-foo
+        secret: 
+          secretName: {{ template "name" . }}
+          defaultMode: 256
+      - name: cassandra-data
+{{- if eq .Values.cassandra.persistence.enabled  false }}
+        emptyDir: {}
+{{- end -}}
+{{- if .Values.cassandra.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: cassandra-data
+      annotations:
+        volume.beta.kubernetes.io/storage-class: {{ .Values.cassandra.persistence.storageClass | quote }}
+    spec:
+      accessModes: {{ .Values.cassandra.persistence.accessModes }}
+      resources:
+        requests:
+          storage: {{ .Values.cassandra.persistence.size | quote }}
+{{- end -}}
+

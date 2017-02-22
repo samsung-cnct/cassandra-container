@@ -113,7 +113,7 @@ public class KubernetesSeedProvider implements SeedProvider {
         try {
             String token = getServiceAccountToken();
 
-            SSLContext ctx = SSLContext.getInstance("SSL");
+            SSLContext ctx = SSLContext.getInstance("TLSv1.2");
             ctx.init(null, trustAll, new SecureRandom());
 
             URL url = new URL(proto + host + ":" + port + path + serviceName);
