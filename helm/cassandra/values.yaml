@@ -69,8 +69,8 @@ opscenter:
   name: opscenter
   replicaCount: 1
   image:
-    repository: quay.io/mikeln/opscenter_dse
-    tag: v1.0.11
+    repository: quay.io/mikeln/opscenter_dse_sec
+    tag: v2.0.2
     pullPolicy: IfNotPresent
   ports:
   - *port8888WebUI
@@ -84,8 +84,8 @@ cassandra:
   name: cassandra
   replicaCount: 6
   image:
-    repository: quay.io/mikeln/cassandra_dse
-    tag: v1.0.11
+    repository: quay.io/mikeln/cassandra_dse_sec
+    tag: v2.0.2
     pullPolicy: IfNotPresent
   ports:
   - *port7000Huh
@@ -106,6 +106,8 @@ cassandra:
     - -c
     - /usr/local/bin/stop-cass.sh
   terminationGracePeriodSeconds: 60
+  datacenter: "sea-001"
+  rack: "rack-010"
   persistence:
     enabled: false
     storageClass: standard

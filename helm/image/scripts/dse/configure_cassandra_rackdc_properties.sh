@@ -2,6 +2,7 @@
 
 function get_rack {
   cloud_type=$1
+  rack_specified=${2:-"rack1"}
 
   if [[ $cloud_type == "azure" ]]; then
     fault_domain=$(curl --max-time 50000 --retry 12 --retry-delay 50000 http://169.254.169.254/metadata/v1/InstanceInfo -s -S | sed -e 's/.*"FD":"\([^"]*\)".*/\1/')
@@ -25,7 +26,7 @@ function get_rack {
     fi
     rack=$zone
   elif [[ $cloud_type == "gke" ]]; then
-    rack="rack1"
+    rack=$rack_specified
   else
     echo Cloud type $cloud_type is not supported 1>&2
     exit 99
@@ -36,7 +37,8 @@ function get_rack {
 
 cloud_type="$1"
 dc="$2"
-rack=`get_rack $cloud_type`
+rack_in="$3"
+rack=`get_rack $cloud_type $rack_in`
 
 #
 # should only present on a DSE install image (vs DSC21)
