@@ -1,0 +1,14 @@
+apiVersion: v1
+description: A Helm chart for Cassandra on Kubernetes
+home: https://github.com/mikeln/cassandra-container/helm/cassandra-script
+keywords:
+- cassandra
+- opscenter
+- database
+maintainers:
+- email: mikeln.samsung@gmail.com
+  name: Mikel Nelson
+name: cassandra-script
+sources:
+- https://github.com/mikeln/cassandra-container/helm/cassandra-script
+version: 0.1.3

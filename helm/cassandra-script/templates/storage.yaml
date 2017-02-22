@@ -1,0 +1,17 @@
+{{- if .Values.cassandra.persistence.enabled -}}
+apiVersion: storage.k8s.io/v1beta1
+kind: StorageClass
+metadata:
+  name: standard
+  labels:
+    name: {{ template "name" . }}
+    heritage: {{ .Release.Service | quote }}
+    release: {{ .Release.Name | quote }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    component: {{ template "name" . }}
+  annotations:
+    "helm.sh/created": {{.Release.Time.Seconds | quote }}
+provisioner: {{ default "kubernetes.io/gce-pd" .Values.cassandra.storageClass.provisioner | quote }} 
+parameters:
+  type: {{ default "pd-ssd" .Values.cassandra.storageClass.type | quote }}
+{{- end -}}
