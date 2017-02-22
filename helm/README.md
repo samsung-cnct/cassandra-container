@@ -3,6 +3,8 @@
 ## Purpose
 This directory contains versions of Datastax Cassandra that runs with "more" current version of kubernetes, and deployed via Helm.
 
+**This is designed around using GKE with Kubernetes 1.5.x**
+
 ### Relevance
 #### 2/22/2017 MLN Added
 
