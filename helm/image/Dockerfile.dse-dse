@@ -1,0 +1,103 @@
+##
+##    Datastax Enterprise Cassandra (kubernetes)
+##
+##
+FROM ubuntu:14.04
+MAINTAINER Mikel Nelson <mikel.n@samsung.com>
+
+ENV dse_ver 5.0.3-1
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886 \
+    && DEBIAN_FRONTEND=noninteractive apt-get update -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    curl \
+    wget \
+    sudo \
+    vim-tiny \
+    dnsutils \
+    adduser curl lsb-base procps zlib1g gzip sysstat ntp bash tree \
+    python python-support \
+    apt-transport-https \
+    unzip \
+# from install_datastax_ubuntu/os/install_javea.sh
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common \
+    && add-apt-repository -y ppa:webupd8team/java \
+    && DEBIAN_FRONTEND=noninteractive apt-get update -y \
+    && echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections \
+    && echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-set-selections \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    oracle-java8-installer \
+# some comment about java installs failing sometimes...a 2nd try fixes it.
+#    oracle-java8-installer \
+    && echo "0------" \
+    && java -version \
+    && echo "0-------" \
+#
+# cassandra next install_datastax_ubuntu/dse/install.sh
+#
+    && echo "deb http://datastax%40google.com:8GdeeVT2s7zi@debian.datastax.com/enterprise stable main" | sudo tee -a /etc/apt/sources.list.d/datastax.sources.list \
+    && curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add - \
+    && DEBIAN_FRONTEND=noninteractive apt-get update -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+# dse_version=5.0.3-1
+    dse-full=$dse_ver \
+    dse=$dse_ver \
+    dse-hive=$dse_ver \
+    dse-pig=$dse_ver \
+    dse-demos=$dse_ver \
+    dse-libsolr=$dse_ver \
+    dse-libtomcat=$dse_ver \
+    dse-libsqoop=$dse_ver \
+    dse-liblog4j=$dse_ver \
+    dse-libmahout=$dse_ver \
+    dse-libhadoop-native=$dse_ver \
+    dse-libcassandra=$dse_ver \
+    dse-libhive=$dse_ver \
+    dse-libpig=$dse_ver \
+    dse-libhadoop=$dse_ver \
+    dse-libspark=$dse_ver \
+    dse-libhadoop2-client-native=$dse_ver \
+    dse-libgraph=$dse_ver \
+    dse-libhadoop2-client=$dse_ver \
+# stops the service immeadieately since we will reconfigure
+#    && service cassandra stop \
+    && rm -rf /var/lib/cassandra/data/system/* \
+# opscenter agent install
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    sysstat \
+    procps \
+# opscenter_version=6.0.4
+    datastax-agent=6.0.4 \
+#
+#  NOTE: this line also deletes all of java in this install... not sure why yet
+#    && DEBIAN_FRONTEND=noninteractive apt-get remove -y --purge wget \
+#    && echo "3------" \
+#    && java -version \
+#    && echo "3-------" \
+    && DEBIAN_FRONTEND=noninteractive apt-get autoremove -y \
+    && DEBIAN_FRONTEND=noninteractive apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+# install creates a user
+    && chown cassandra /mnt \ 
+    && chgrp cassandra /mnt
+#
+# install jq for json parsing...no apt pkg for this yet
+#  (need this here, and not in the init.sh so it can stand alone)
+#
+RUN curl -v -O http://stedolan.github.io/jq/download/linux64/jq \
+    && chmod +x ./jq \
+    && sudo mv ./jq /usr/bin
+#
+# Do add all the scripts needed for kubernetes setup and starting
+#
+COPY init-cass.sh /usr/local/bin/init-cass.sh
+COPY stop-cass.sh /usr/local/bin/stop-cass.sh
+COPY scripts/ /scripts/
+
+RUN chmod 755 /usr/local/bin/init-cass.sh \
+   && chmod 755 /usr/local/bin/stop-cass.sh \
+   && chmod -R 755 /scripts
+#
+EXPOSE 7199 7000 7001 9160 9042
+EXPOSE 61620 61621 50031
+USER root
+# NO DEFAULT CMD
