@@ -35,6 +35,12 @@ DOCKER_DSE_SEC_FILE := Dockerfile.dse-dse-sec
 DOCKER_EPS_SEC_IMAGE := opscenter_dse_sec
 DOCKER_EPS_SEC_FILE := Dockerfile.dse-ops-sec
 
+IMAGE_PUSH_COMMAND := $(shell if [[ $(DOCKER_REPO) =~ ^gcr.io/*  ]]; then \
+	  echo "gcloud docker -- push"; \
+	  else \
+	  echo "docker push"; \
+	  fi)
+
 repo-warning:
 	@if  [ $(DOCKER_REPO) =  $(DEFAULT_REPO) ]; then \
 		echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"; \
@@ -50,6 +56,9 @@ repo-warning:
 		echo "  Please execute 'make all' to build"; \
 		echo "+++++++++++++++++++++++++++++++++++++++++++++++++++"; \
 	fi
+
+correct-push-command:
+	echo "Using push command: ${IMAGE_PUSH_COMMAND}"
 
 all: build-dsc build-dse build-dsc-sec build-dse-sec
 
@@ -137,30 +146,30 @@ push-dsc-sec: push-dsc-cass-sec push-dsc-ops-sec
 push-dse-sec: push-dse-cass-sec push-dse-ops-sec
 
 push-dsc-cass: 
-	docker push $(REPO)/$(DOCKER_CASS_IMAGE):$(DSC_IMG_VERSION)
+	$(IMAGE_PUSH_COMMAND) $(REPO)/$(DOCKER_CASS_IMAGE):$(DSC_IMG_VERSION)
 
 push-dsc-ops: 
-	docker push $(REPO)/$(DOCKER_OPSC_IMAGE):$(DSC_IMG_VERSION)
+	$(IMAGE_PUSH_COMMAND) $(REPO)/$(DOCKER_OPSC_IMAGE):$(DSC_IMG_VERSION)
 
 push-dse-cass: 
-	docker push $(REPO)/$(DOCKER_DSE_IMAGE):$(DSE_IMG_VERSION)
+	$(IMAGE_PUSH_COMMAND) $(REPO)/$(DOCKER_DSE_IMAGE):$(DSE_IMG_VERSION)
 
 push-dse-ops: 
-	docker push $(REPO)/$(DOCKER_EPS_IMAGE):$(DSE_IMG_VERSION)
+	$(IMAGE_PUSH_COMMAND) $(REPO)/$(DOCKER_EPS_IMAGE):$(DSE_IMG_VERSION)
 
 #-----
 
 push-dsc-cass-sec: 
-	docker push $(REPO)/$(DOCKER_CASS_SEC_IMAGE):$(DSC_IMG_VERSION)
+	$(IMAGE_PUSH_COMMAND) $(REPO)/$(DOCKER_CASS_SEC_IMAGE):$(DSC_IMG_VERSION)
 
 push-dsc-ops-sec: 
-	docker push $(REPO)/$(DOCKER_OPSC_SEC_IMAGE):$(DSC_IMG_VERSION)
+	$(IMAGE_PUSH_COMMAND) $(REPO)/$(DOCKER_OPSC_SEC_IMAGE):$(DSC_IMG_VERSION)
 
 push-dse-cass-sec: 
-	docker push $(REPO)/$(DOCKER_DSE_SEC_IMAGE):$(DSE_IMG_VERSION)
+	$(IMAGE_PUSH_COMMAND) $(REPO)/$(DOCKER_DSE_SEC_IMAGE):$(DSE_IMG_VERSION)
 
 push-dse-ops-sec: 
-	docker push $(REPO)/$(DOCKER_EPS_SEC_IMAGE):$(DSE_IMG_VERSION)
+	$(IMAGE_PUSH_COMMAND) $(REPO)/$(DOCKER_EPS_SEC_IMAGE):$(DSE_IMG_VERSION)
 
 
 clean: clean-dsc clean-dse clean-dsc-sec clean-dse-sec
