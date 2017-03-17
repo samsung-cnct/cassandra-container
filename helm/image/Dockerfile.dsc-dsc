@@ -69,10 +69,12 @@ RUN curl -v -O http://stedolan.github.io/jq/download/linux64/jq \
 #
 COPY init-cass.sh /usr/local/bin/init-cass.sh
 COPY stop-cass.sh /usr/local/bin/stop-cass.sh
+COPY ready-probe.sh /usr/local/bin/ready-probe.sh
 COPY scripts/ /scripts/
 
 RUN chmod 755 /usr/local/bin/init-cass.sh \
    && chmod 755 /usr/local/bin/stop-cass.sh \
+   && chmod 755 /usr/local/bin/ready-probe.sh \
    && chmod -R 755 /scripts
 #
 EXPOSE 7199 7000 7001 9160 9042

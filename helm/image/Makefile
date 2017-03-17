@@ -5,8 +5,8 @@
 #
 # 1/31/2017 mln
 #
-DSC_IMG_VERSION := v2.0.7
-DSE_IMG_VERSION := v2.0.7
+DSC_IMG_VERSION := v2.0.10
+DSE_IMG_VERSION := v2.0.10
 #
 # do some repo evals... want everyone to use their own, unless building for the team
 #

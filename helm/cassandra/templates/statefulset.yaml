@@ -44,6 +44,18 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        readinessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - /usr/local/bin/ready-probe.sh
+          initialDelaySeconds: 15
+          timeoutSeconds: 5
         ports: 
         {{ range .Values.cassandra.ports }}- containerPort: {{ .port }}
         {{ end -}}
@@ -86,4 +98,3 @@ spec:
         requests:
           storage: {{ .Values.cassandra.persistence.size | quote }}
 {{- end -}}
-

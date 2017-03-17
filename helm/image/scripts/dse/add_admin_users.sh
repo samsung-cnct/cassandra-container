@@ -58,7 +58,7 @@ else
     while [ $UP_NODE_COUNT -lt 3 ];do
         echo "====> Up Node Count (3 or more needed): $UP_NODE_COUNT"
         sleep 2
-        UP_NODE_COUNT=$($NODETOOL_CMD status | grep "^U" | wc -l)
+        UP_NODE_COUNT=$($NODETOOL_CMD status | grep "^UN" | wc -l)
     done
     echo "====> Up Node Count Met (3 or more needed): $UP_NODE_COUNT"
 fi
@@ -82,10 +82,10 @@ while [ $? -ne 0 ];do
            $CQLSH_CMD -u cassandra -p cassandra -e "list users;"
        else
            echo "ERROR: Unable to use old or new admin."
-#           $NODETOOL_CMD cleanup 
-#           if [ $? -ne 0 ];then
-#              echo "ERROR - could not nodetool repair this node"
-#           fi
+           $NODETOOL_CMD repair 
+           if [ $? -ne 0 ];then
+              echo "ERROR - could not nodetool repair this node"
+           fi
            exit 2
        fi
     else
