@@ -48,6 +48,23 @@ while [ $? -ne 0 ];do
 done
 
 #---------------------------------------------
+# wait until nodes are up
+#---------------------------------------------
+# count the UP nodes... loop until we have enough...need a minimum of 3 for security replication
+UP_NODE_COUNT=$($NODETOOL_CMD status | grep "^U" | wc -l)
+if [ $? -ne 0 ];then
+    echo "WARNING getting total UP Node count.  Proceeding but may not work correctly."
+else
+    while [ $UP_NODE_COUNT -lt 3 ];do
+        echo "====> Up Node Count (3 or more needed): $UP_NODE_COUNT"
+        sleep 2
+        UP_NODE_COUNT=$($NODETOOL_CMD status | grep "^UN" | wc -l)
+    done
+    echo "====> Up Node Count Met (3 or more needed): $UP_NODE_COUNT"
+fi
+
+# TODO count the UP nodes... loop until we have enough
+#---------------------------------------------
 # determine if these changes have already occured...each node will attempt.   Check for ability to login via default superuser.  If that fails check for new superuser.  IF that fails...then we have a problem.
 # allos 2 min 24*5sec of retries
 RETRIES=24
@@ -65,10 +82,10 @@ while [ $? -ne 0 ];do
            $CQLSH_CMD -u cassandra -p cassandra -e "list users;"
        else
            echo "ERROR: Unable to use old or new admin."
-#           $NODETOOL_CMD cleanup 
-#           if [ $? -ne 0 ];then
-#              echo "ERROR - could not nodetool repair this node"
-#           fi
+           $NODETOOL_CMD repair 
+           if [ $? -ne 0 ];then
+              echo "ERROR - could not nodetool repair this node"
+           fi
            exit 2
        fi
     else

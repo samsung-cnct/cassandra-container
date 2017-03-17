@@ -69,8 +69,9 @@ opscenter:
   name: opscenter
   replicaCount: 1
   image:
-    repository: quay.io/mikeln/opscenter_dse_sec
-    tag: v2.0.2
+    repository: gcr.io/k8aos-dev/opscenter_dse_sec
+    #repository: gcr.io/k8aos-dev/opscenter_dse
+    tag: v2.0.10
     pullPolicy: IfNotPresent
   ports:
   - *port8888WebUI
@@ -84,8 +85,9 @@ cassandra:
   name: cassandra
   replicaCount: 6
   image:
-    repository: quay.io/mikeln/cassandra_dse_sec
-    tag: v2.0.2
+    repository: gcr.io/k8aos-dev/cassandra_dse_sec
+    #repository: gcr.io/k8aos-dev/cassandra_dse
+    tag: v2.0.10
     pullPolicy: IfNotPresent
   ports:
   - *port7000Huh
@@ -99,6 +101,10 @@ cassandra:
   - -e
   - -c
   - /usr/local/bin/init-cass.sh
+  secret:
+    adminpw: "changethis"
+    opspw: "andthisisbadalso"
+    workrpw: "reallybaddontusethis"
   preStop:
     command:
     - /bin/bash
