@@ -1,0 +1,59 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "adminname" . }}
+  labels:
+    name: {{ template "adminname" . }}
+    heritage: {{.Release.Service | quote }}
+    release: {{.Release.Name | quote }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    component: {{ template "adminname" . }}
+  annotations:
+    pod.beta.kubernetes.io/init-containers: '[
+       {
+         "name": "wait-for-enough-nodes",
+         "image": "{{ .Values.admin.curl.image.repository }}:{{ .Values.admin.curl.image.tag }}",
+         "imagePullPolicy": "{{ .Values.admin.curl.image.pullPolicy }}",
+         "command": ["bash", "-c", "echo \"waiting for endpoints...\"; while true; set endpoints (curl -s --cacert /var/run/secrets/kubernetes.io/serviceaccount/ca.crt --header \"Authorization: Bearer \"(cat /var/run/secrets/kubernetes.io/serviceaccount/token) https://kubernetes.default.svc/api/v1/namespaces/{{ .Release.Namespace }}/endpoints/{{ template "cassandraname" . }}); echo $endpoints | jq \".\"; if test (echo $endpoints | jq -r \".subsets[].addresses | length\") -gt 2; exit 0; end; echo \"waiting...\";sleep 1; end"]
+       }
+     ]'
+    "helm.sh/created": {{.Release.Time.Seconds | quote }}
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ template "adminname" . }}
+        name: {{ template "adminname" . }}
+        heritage: {{.Release.Service | quote }}
+        release: {{.Release.Name | quote }}
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        component: {{ template "adminname" . }}
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: {{ template "adminname" . }}
+        image: "{{ .Values.admin.curl.image.repository }}:{{ .Values.admin.curl.image.tag }}"
+        imagePullPolicy: {{ .Values.admin.curl.image.pullPolicy }}
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        volumeMounts:
+        - name: cassandra-foo
+          mountPath: /etc/cassandra/foo
+          readOnly: true
+        command: 
+        {{ range .Values.admin.command}}- {{ . }}
+        {{ end -}}
+        resources:
+{{ toYaml .Values.admin.resources | indent 10}}
+      volumes:
+      - name: cassandra-foo
+        secret:
+          secretName: {{ template "name" . }}
+          defaultMode: 256
