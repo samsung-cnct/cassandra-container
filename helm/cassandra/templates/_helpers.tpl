@@ -41,3 +41,12 @@ Create name at 21 to allow for -xx addition
 {{- $name := default "opscenter" .Values.opscenter.name -}}
 {{- printf "%s-%s" $name .Release.Name | lower | trunc 21 | trimSuffix "-" -}}
 {{- end -}}
+{{/*
+Create a default fully qualified app name for a cassandra seed deployment.
+We truncate at 24 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+Create name at 21 to allow for -xx addition
+*/}}
+{{- define "seedname" -}}
+{{- $name := default "seed" .Values.serviceSeed.name -}}
+{{- printf "%s-%s" $name .Release.Name | lower | trunc 21 | trimSuffix "-" -}}
+{{- end -}}
