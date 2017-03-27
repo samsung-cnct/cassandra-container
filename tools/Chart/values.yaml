@@ -1,0 +1,17 @@
+admin:
+  name: admin
+  image:
+    repository: quay.io/mikeln/change_db
+    tag: v2.0.2
+    pullPolicy: IfNotPresent
+  curl:
+    image:
+      repository: quay.io/mikeln/alpine_curl
+      tag: v1.0.0
+      pullPolicy: IfNotPresent
+  command:
+  - /bin/bash
+  - -e
+  - -c
+  - "echo \"COULD WORK NOW\""
+

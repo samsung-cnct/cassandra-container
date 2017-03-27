@@ -1,10 +1,6 @@
 # Default values for mikeln-cassandra.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-image:
-  repository: ubuntu
-  tag: 14.04
-  pullPolicy: IfNotPresent
 port8888WebUI: &port8888WebUI
   port: 8888
   targetPort: 8888
@@ -52,7 +48,7 @@ serviceOpscenter:
   - *port8888WebUI
   - *port61620Agent
 serviceSeed:
-  name: cassandra-seed
+  name: cass-seed
   type: NodePort
   ports:
   - *port7000Huh
@@ -64,7 +60,9 @@ serviceSeed:
 serviceCassandra:
   name: cassandra-svc
   type: LoadBalancer
-  internalPort:
+  ports:
+  - *port9042CQL
+  - *port9160Thrift
 opscenter:
   name: opscenter
   replicaCount: 1
@@ -124,11 +122,3 @@ cassandra:
     provisioner: kubernetes.io/gce-pd
     parameters:
       type: pd-ssd
-resources:
-  limits:
-    cpu: 100m
-    memory: 128Mi
-  requests:
-    cpu: 100m
-    memory: 128Mi
-

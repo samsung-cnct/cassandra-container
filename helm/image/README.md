@@ -2,7 +2,7 @@ This builds cassandra and opscenter images based on the datastax scripts.
 
 1/2017 mikeln
 
-See the [BUILD.md](/BUILD.md) for build instructions.
+See the [BUILD.md](./BUILD.md) for build instructions.
 
 
 ### Images
@@ -13,9 +13,13 @@ See the [BUILD.md](/BUILD.md) for build instructions.
 * cassandra_dse_sec, opscenter_dse_sec - Datastax Enterprise with security enabled
 
 ### Image Start Scripts
-The scripts are modified from the Datastax gke scripts.  
+The scripts are modified from the Datastax gke scripts here:
 
-2/14/2017 - Still TBD running this on AWS (It should work)
+* `git@github.com:DSPN/google-container-engine-dse.git`
+* `git@github.com:DSPN/install-datastax-ubuntu.git`
+
+
+3/14/2017 - Still TBD running this on AWS 
 
 ### Run
 

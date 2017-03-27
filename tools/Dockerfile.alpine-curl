@@ -1,0 +1,16 @@
+##
+##    Cassandra (kubernetes)
+##
+##
+FROM alpine:edge
+MAINTAINER Mikel Nelson <mikel.n@samsung.com>
+
+RUN apk add --update \
+   bash \
+   grep \
+   curl \
+   jq \
+   vim \
+   && rm -rf /var/cache/apk/*
+
+ENTRYPOINT ["bash"]
