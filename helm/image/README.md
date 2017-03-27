@@ -2,7 +2,7 @@ This builds cassandra and opscenter images based on the datastax scripts.
 
 1/2017 mikeln
 
-See the [BUILD.md](/BUILD.md) for build instructions.
+See the [BUILD.md](./BUILD.md) for build instructions.
 
 
 ### Images
