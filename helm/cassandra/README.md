@@ -85,13 +85,13 @@ Needed by the Cassandra Stateful Set.  Should not Change.
 | `cassandra.secret.workrpw` | First user account password<br>Account name `workr` | Should be specified on the command line to minimize exposure |Only required for `_sec` images |
 
 
-### Resources
+### Resources (optional) (currently not set)
 | Parameter | Description | Default |
 | --- | --- | --- |
-| `resources.limits.cpu` |  | `100m` |
-| `resources.limits.memory` |  | `128Mi` |
-| `resources.requests.cpu` |  | `100m` |
-| `resources.requests.memory` |  | `128Mi` |
+| `cassandra.resources.limits.cpu` |  | `100m` |
+| `cassandra.resources.limits.memory` |  | `128Mi` |
+| `cassandra.resources.requests.cpu` |  | `100m` |
+| `cassandra.resources.requests.memory` |  | `128Mi` |
 
 ### Command Line
 The chart should be started with a namespace argument, and specify the password values for the initial required users.
@@ -99,3 +99,14 @@ The chart should be started with a namespace argument, and specify the password 
 `--namespace=cassadnra`
 
 `--set cassandra.secret.adminpw="bogus1",cassandra.secret.opspw="b2",cassandra.secret.workrpw="zone3a"`
+
+It is somewhat more secure to only specify the passwords on the command line, vs. putting them in the `values.yaml` file for the chart.  In this way, the passwords are never stored unencrypted.
+
+### Notes
+* Currently, the passwords must always be specified, even when running a nonsecured (i.e. not a _sec) image.  
+* The default admin login for nonsecured images is: *cassandra:cassandra*.  That account is disabled in the secured images.
+* Secured images take longer to create an initial cluster.  If OpsCenter is reporting that some agents are not reporting correctly, after you have waited for some amount of time, you should exec a `nodetool repair` in one of the cassandra pods.  e.g.  `kubectl --namespace=cassandra exec -it <cassandra pod name> -- nodetool repair`
+* This Chart is currently only setup for DB access inside a cluster.  Another external loadbalance service will be needed to allow outside access.
+
+
+
