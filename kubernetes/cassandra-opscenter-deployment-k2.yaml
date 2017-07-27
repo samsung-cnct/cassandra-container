@@ -18,7 +18,7 @@ spec:
           nodePort: 30888
     selector:
         name: opscenter
-    type: NodePort
+    type: LoadBalancer
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -141,10 +141,11 @@ spec:
     ports:
         - name: native
           port: 9042
-          targetPort: 30042
+          targetPort: 9042
+#          targetPort: 30042
         - name: thrift
           port: 9160
-          targetPort: 30160
+#          targetPort: 30160
     selector:
         name: cassandra
-    type: NodePort
+    type: LoadBalancer

@@ -1,0 +1,126 @@
+# Default values for mikeln-cassandra.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+port8888WebUI: &port8888WebUI
+  port: 8888
+  targetPort: 8888
+  protocol: TCP
+  name: port-web-ui
+port61620Agent: &port61620Agent
+  port: 61620
+  targetPort: 61620
+  protocol: TCP
+  name: port-agent
+port7000Huh: &port7000Huh
+  port: 7000
+  targetPort: 7000
+  protocol: TCP
+  name: port-huh
+port7001HuhSSL: &port7001HuhSSL
+  port: 7001
+  targetPort: 7001
+  protocol: TCP
+  name: port-huh-ssl
+port7199JMX: &port7199JMX
+  port: 7199
+  targetPort: 7199
+  protocol: TCP
+  name: port-jmx
+port9042CQL: &port9042CQL
+  port: 9042
+  targetPort: 9042
+  protocol: TCP
+  name: port-cql
+port9160Thrift: &port9160Thrift
+  port: 9160
+  targetPort: 9160
+  protocol: TCP
+  name: port-thrift
+port61621AgentSSL: &port61621AgentSSL
+  port: 61621
+  targetPort: 61621
+  protocol: TCP
+  name: port-agent-ssl
+serviceOpscenter:
+  name: cassandra-opscenter
+  type: LoadBalancer
+  ports:
+  - *port8888WebUI
+  - *port61620Agent
+serviceSeed:
+  name: cass-seed
+  type: NodePort
+  ports:
+  - *port7000Huh
+  - *port7001HuhSSL
+  - *port7199JMX
+  - *port9042CQL
+  - *port9160Thrift
+  - *port61621AgentSSL
+serviceCassandra:
+  name: cassandra-svc
+  type: LoadBalancer
+  ports:
+  - *port9042CQL
+  - *port9160Thrift
+opscenter:
+  name: opscenter
+  replicaCount: 1
+  image:
+    repository: quay.io/mikeln/opscenter_dse
+    #repository: gcr.io/k8aos-dev/opscenter_dse_sec
+    #repository: gcr.io/k8aos-dev/opscenter_dse
+    tag: v2.0.10
+    pullPolicy: IfNotPresent
+  ports:
+  - *port8888WebUI
+  - *port61620Agent
+  command:
+  - /bin/bash
+  - -e
+  - -c
+  - /usr/local/bin/init-opsc.sh
+cassandra:
+  name: cassandra
+  replicaCount: 4
+  image:
+    repository: quay.io/mikeln/cassandra_dse
+    #repository: gcr.io/k8aos-dev/cassandra_dse_sec
+    #repository: gcr.io/k8aos-dev/cassandra_dse
+    tag: v2.0.10
+    pullPolicy: IfNotPresent
+  ports:
+  - *port7000Huh
+  - *port7001HuhSSL
+  - *port7199JMX
+  - *port9042CQL
+  - *port9160Thrift
+  - *port61621AgentSSL
+  command:
+  - /bin/bash
+  - -e
+  - -c
+  - /usr/local/bin/init-cass.sh
+  secret:
+    adminpw: "changethis"
+    opspw: "andthisisbadalso"
+    workrpw: "reallybaddontusethis"
+  preStop:
+    command:
+    - /bin/bash
+    - -e
+    - -c
+    - /usr/local/bin/stop-cass.sh
+  terminationGracePeriodSeconds: 60
+  datacenter: "sea-001"
+  rack: "rack-010"
+  persistence:
+    enabled: false
+    storageClass: standard
+    accessModes:
+    - ReadWriteOnce
+    size: 5Gi
+  storageClass:
+    provisioner: kubernetes.io/gce-pd
+    parameters:
+      type: pd-ssd
