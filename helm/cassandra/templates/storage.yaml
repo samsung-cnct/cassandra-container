@@ -13,5 +13,5 @@ metadata:
     "helm.sh/created": {{.Release.Time.Seconds | quote }}
 provisioner: {{ default "kubernetes.io/gce-pd" .Values.cassandra.storageClass.provisioner | quote }} 
 parameters:
-  type: {{ default "pd-ssd" .Values.cassandra.storageClass.type | quote }}
+{{ toYaml .Values.cassandra.storageClass.parameters | indent 3 }}
 {{- end -}}
